@@ -27,7 +27,7 @@ argParser = argparse.ArgumentParser(
         '''))
 argParser.add_argument("-i", "--input_dir", help="path to dir with DICOM series folders", type=str, required=True)
 argParser.add_argument("-o", "--output_dir", help="path to dir where NIfTI files will be saved", type=str, required=True)
-argParser.add_argument("-a", "--a", help='1 if dicom2nifti is considered, 0 otherwise', type=int, required=False, default=True)
+argParser.add_argument("-a", "--a", help='1 if dicom2nifti is considered, 0 otherwise', type=int, choices = [0,1], required=False, default=True)
 argParser.add_argument("-b", "--b", help='1 if dcm2niix is considered, 0 otherwise', type=int, choices = [0,1], required=False, default=True)
 argParser.add_argument("-c", "--c", help='1 if dcmstack is considered, 0 otherwise', type=int, choices = [0,1], required=False, default=True)
 argParser.add_argument("-d", "--d", help='1 if sitk is considered, 0 otherwise', type=int, choices = [0,1], required=False, default=True)
