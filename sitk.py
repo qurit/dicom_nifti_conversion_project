@@ -1,19 +1,6 @@
 #!/usr/bin/env python3
 
-# Necessary Imports
-import argparse
-import os
-import pydicom
-import pandas as pd
-import gzip
-import shutil
-import json
-import csv
-import numpy as np
-import SimpleITK as sitk
-from datetime import datetime
-import platform
-import dateutil
+from helper import *
 
 # Arguments to be passed
 argParser = argparse.ArgumentParser()
@@ -21,34 +8,6 @@ argParser.add_argument("-i", "--input_dir", help="path to dir with DICOM series 
 argParser.add_argument("-o", "--output_dir", help="path to dir where NIfTI file will be saved", type=str, required=True)
 argParser.add_argument("-f", "--file_name", help="name of the nifti file (without extension)", type=str, required=True)
 args = argParser.parse_args()
-
-def bqml_to_suv(dcm_file: pydicom.FileDataset) -> float:
-    '''
-    Calculates the conversion factor from Bq/mL to SUV bw [g/mL] using 
-    the dicom header information in one of the images from a dicom series
-    '''
-    nuclide_dose = dcm_file[0x054, 0x0016][0][0x0018, 0x1074].value  # Total injected dose (Bq)
-    weight = dcm_file[0x0010, 0x1030].value  # Patient weight (Kg)
-    half_life = float(dcm_file[0x054, 0x0016][0][0x0018, 0x1075].value)  # Radionuclide half life (s)
-
-    parse = lambda x: dateutil.parser.parse(x)
-
-    series_time = str(dcm_file[0x0008, 0x00031].value)  # Series start time (hh:mm:ss)
-    series_date = str(dcm_file[0x0008, 0x00021].value)  # Series start date (yyy:mm:dd)
-    series_datetime_str = series_date + ' ' + series_time
-    series_dt = parse(series_datetime_str)
-
-    nuclide_time = str(dcm_file[0x054, 0x0016][0][0x0018, 0x1072].value)  # Radionuclide time of injection (hh:mm:ss)
-    nuclide_datetime_str = series_date + ' ' + nuclide_time
-    nuclide_dt = parse(nuclide_datetime_str)
-
-    delta_time = (series_dt - nuclide_dt).total_seconds()
-    decay_correction = 2 ** (-1 * delta_time/half_life)
-    suv_factor = (weight * 1000) / (decay_correction * nuclide_dose)
-    Rescale_Slope= dcm_file[0x0028,0x1053].value
-    Rescale_Intercept=dcm_file[0x0028,0x1052].value
-
-    return (suv_factor, Rescale_Slope, Rescale_Intercept)
 
 def dicomToNifti(input_dir, output_dir, file_name):
     # converts DICOM series in the seriesDir to NIFTI image in the savePath specified
