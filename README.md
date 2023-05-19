@@ -1,6 +1,12 @@
 # dicom_nifti_project
 Analyzing the effects of different DICOM to NIfTI file conversion on Medical Imaging Training. 
 
+# Introduction
+
+The purpose of this repository is to explore the effects of different DICOM to NIfTI file conversion techniques on Medical imaging AI training models. Because these two file formats are used extensively in this area of research, it is pivotal to understand the effects of changing between them. In this repository, we will explicitly be dealing with `dicom2nifti`, `dcm2niix`, `dcmstack`, `SimpleITK` in addition to LIFEx and 3D Slicer Applications. 
+
+With a focus on PET values, we will be comparing the raw data and generated images by sending the data through `ai4elife`. 
+
 # Directory Structure
 This is the required directory structure for the input directory for `create_nifti_files.py`:
 ```
