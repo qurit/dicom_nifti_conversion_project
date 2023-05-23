@@ -18,7 +18,7 @@ argParser.add_argument("-a", "--ai_dir", help="path to dir with ai4elife (downlo
 
 args = argParser.parse_args()
 
-sys.stdout.write("\n"+f"-"*100)
+sys.stdout.write("\n"+f"-"*100+"\n")
 
 input_dir = args.input_dir
 input_dir = os.path.abspath(input_dir)
@@ -33,6 +33,11 @@ cwd = os.path.abspath(cwd)
 if not(os.path.isdir(output_dir)):
     os.mkdir(output_dir)
     output_dir = os.path.abspath(output_dir)
+
+# Move the dictionary to the output directory
+dict_path = os.path.join(input_dir, dict_name+dict_ext)
+move_exe = f"mv {dict_path} {output_dir}"
+os.system(move_exe)
 
 # Go to the ai4elife directory
 os.chdir(ai_dir)

@@ -22,6 +22,8 @@ gt_dir_name = 'GT'
 fi_ext = '.nii.gz'
 sitk_path = './sitk.py'
 ai4elife_dir_name = 'pet'
+dict_name = 'dict'
+dict_ext = '.txt'
 
 a,b,c,d,e,f = ['a', 'b', 'c', 'd', 'e', 'f']
 titles_dict = {'a' : 'dicom2nifti',
@@ -100,7 +102,8 @@ def create_output_dir(output_dir):
     """
     if not(os.path.isdir(output_dir)):
         os.mkdir(output_dir)
-        sys.stdout.write(f"\n Output directory at {output_dir}")
+    sys.stdout.write(f"Output directory at {output_dir}")
+
 
 def a_conv(output_path, pet_dir):
     """
@@ -113,7 +116,7 @@ def a_conv(output_path, pet_dir):
     fi_path = os.path.join(output_path, titles_dict[a]+fi_ext)
     os.rename(os.path.join(output_path, fi), fi_path)
 
-    sys.stdout.write("\n"+ f"{titles_dict[a]} complete"+ "\n")
+    sys.stdout.write(f"{titles_dict[a]} complete\n")
 
     return fi_path
             
@@ -127,7 +130,7 @@ def b_conv(output_path, pet_dir):
     fi_name = titles_dict[b]+fi_ext
     fi_path = os.path.join(output_path, fi_name)
 
-    sys.stdout.write("\n"+ f"{titles_dict[b]} complete"+ "\n")
+    sys.stdout.write(f"{titles_dict[b]} complete\n")
 
     return fi_path
 
@@ -140,8 +143,7 @@ def c_conv(output_path, pet_dir):
     
     fi_name = titles_dict[c]+fi_ext
     fi_path = os.path.join(output_path, fi_name)
-
-    sys.stdout.write("\n"+ f"{titles_dict[c]} complete"+ "\n")
+    sys.stdout.write(f"{titles_dict[c]} complete\n")
 
     return fi_path
 
@@ -152,7 +154,7 @@ def d_conv(output_path, pet_dir):
     """
     d_exe = f'python {sitk_path} -i {pet_dir} -o {output_path} -f {titles_dict[d]}'
     os.system(d_exe)
-    sys.stdout.write("\n"+ f"{titles_dict[d]} complete"+ "\n")
+    sys.stdout.write(f"{titles_dict[d]} complete")
 
 def get_suv(pet_dir):
     """
@@ -193,18 +195,35 @@ def make_conv_dir(output_path, name, key):
 
     return dir_path
 
+def make_dict(names_, output_dir):
+    """
+    Given all the names, will make the relevant dictionary
+    """
+    dict_path = os.path.join(output_dir, dict_name+dict_ext)
+    file = open(dict_path,"w")
+    names = [] 
+    for name_ in names_:
+        name = name_+'\n'
+        names.append(name)
+    file.writelines(names)
+    file.close()
+
 
 def file_conversion(input_dir, output_dir, do_a, do_b, do_c, do_d, do_e, do_f):
     """
     Execute the appropriate DICOM to NIfTI conversions as requested
     """
-    for name in os.listdir(input_dir):
+    names = []
+    dirs = os.listdir(input_dir)
+    no_dirs = len(dirs)
+    for i,name in enumerate(dirs):
         path = os.path.join(input_dir, name)
         # The directories will correspond to individual patients
         try:
             if (os.path.isdir(path)):
+                names.append(name)
                 sys.stdout.write("\n"+f"-"*100+ "\n")
-                sys.stdout.write("\n"+ f"Working on {name}"+ "\n")
+                sys.stdout.write(f"{i+1}/{no_dirs}: Working on {name}"+ "\n")
                 pet_dir = os.path.join(path, pet_dir_name)
                 if (do_a or do_b or do_c):
                     suv_factor, Rescale_Slope, Rescale_Intercept = get_suv(pet_dir)
@@ -229,5 +248,6 @@ def file_conversion(input_dir, output_dir, do_a, do_b, do_c, do_d, do_e, do_f):
                     _ = make_conv_dir(output_dir, name, f)
         except:
             raise SystemError(f"{name} failed")
+    make_dict(names, output_dir)
 
 
