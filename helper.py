@@ -15,6 +15,8 @@ import argparse
 import textwrap
 import sys
 import nibabel as nib
+import matplotlib.pyplot as plt
+
 
 # Constants
 pet_dir_name = 'PET'
@@ -22,10 +24,14 @@ gt_dir_name = 'GT'
 fi_ext = '.nii.gz'
 sitk_path = './sitk.py'
 ai4elife_dir_name = 'pet'
-dict_name = 'dict'
+pred_dir_name = 'predicted_data'
+dict_name = 'cases'
 dict_ext = '.txt'
+pet_end = 'pet.nii'
+mask_end = 'predicted.nii'
 
-a,b,c,d,e,f = ['a', 'b', 'c', 'd', 'e', 'f']
+keys = ['a', 'b', 'c', 'd', 'e', 'f']
+a,b,c,d,e,f = keys
 titles_dict = {'a' : 'dicom2nifti',
                'b' : 'dcm2niix',
                'c' : 'dcmstack',
@@ -209,7 +215,7 @@ def make_dict(names_, output_dir):
     file.close()
 
 
-def file_conversion(input_dir, output_dir, do_a, do_b, do_c, do_d, do_e, do_f):
+def file_conversion(input_dir, output_dir):
     """
     Execute the appropriate DICOM to NIfTI conversions as requested
     """
@@ -225,29 +231,147 @@ def file_conversion(input_dir, output_dir, do_a, do_b, do_c, do_d, do_e, do_f):
                 sys.stdout.write("\n"+f"-"*100+ "\n")
                 sys.stdout.write(f"{i+1}/{no_dirs}: Working on {name}"+ "\n")
                 pet_dir = os.path.join(path, pet_dir_name)
-                if (do_a or do_b or do_c):
-                    suv_factor, Rescale_Slope, Rescale_Intercept = get_suv(pet_dir)
-                if do_a:
-                    a_dir = make_conv_dir(output_dir, name, a)
-                    a_path=a_conv(a_dir, pet_dir)
-                    scale_nifti(a_path, suv_factor, Rescale_Slope, Rescale_Intercept)
-                if do_b:
-                    b_dir = make_conv_dir(output_dir, name, b)
-                    b_path=b_conv(b_dir, pet_dir)
-                    scale_nifti(b_path, suv_factor, Rescale_Slope, Rescale_Intercept)
-                if do_c:
-                    c_dir = make_conv_dir(output_dir, name, c)
-                    c_path=c_conv(c_dir, pet_dir)
-                    scale_nifti(c_path, suv_factor, Rescale_Slope, Rescale_Intercept)
-                if do_d:
-                    d_dir = make_conv_dir(output_dir, name, d)
-                    d_conv(d_dir, pet_dir)
-                if do_e:
-                    _ = make_conv_dir(output_dir, name, e)
-                if do_f:
-                    _ = make_conv_dir(output_dir, name, f)
+                suv_factor, Rescale_Slope, Rescale_Intercept = get_suv(pet_dir)
+
+                #a
+                a_dir = make_conv_dir(output_dir, name, a)
+                a_path=a_conv(a_dir, pet_dir)
+                scale_nifti(a_path, suv_factor, Rescale_Slope, Rescale_Intercept)
+
+                #b 
+                b_dir = make_conv_dir(output_dir, name, b)
+                b_path=b_conv(b_dir, pet_dir)
+                scale_nifti(b_path, suv_factor, Rescale_Slope, Rescale_Intercept)
+
+                #c
+                c_dir = make_conv_dir(output_dir, name, c)
+                c_path=c_conv(c_dir, pet_dir)
+                scale_nifti(c_path, suv_factor, Rescale_Slope, Rescale_Intercept)
+
+                # d
+                d_dir = make_conv_dir(output_dir, name, d)
+                d_conv(d_dir, pet_dir)
+
+                # e
+                _ = make_conv_dir(output_dir, name, e)
+                
+                #f
+                _ = make_conv_dir(output_dir, name, f)
         except:
             raise SystemError(f"{name} failed")
     make_dict(names, output_dir)
 
+def read_dict(temp_dir):
+    """
+    Given the path to the directory holding our dictionary, provide a 
+    list of all the cases
+    """
+    dict_path = os.path.join(temp_dir, dict_name+dict_ext)
 
+    file = open(dict_path,"r")
+    cases_ = file.readlines()
+
+    cases = []
+    for case_ in cases_:
+        case = case_[:-1]
+        cases.append(case)
+
+    return cases
+
+def get_dirs(temp_dir):
+    """
+    Given the temporary directory path, provide a list of all
+    the directory names
+    """
+    pred_dir = os.path.join(temp_dir, pred_dir_name)
+    dirs = os.listdir(pred_dir)
+    return dirs
+
+
+def get_combos(n):
+    """
+    Given a number, provide all combinations between indices less than
+    said number
+    """
+    if (n==0) or (n==1):
+        raise SystemError('n too low')
+    combos = []
+    for x in np.arange(n):
+        for y in np.arange(x+1, n,1):
+            combos.append([x,y])
+    return combos
+def get_case_data(dirs, case, temp_dir):
+    """
+    Run through all the directories and get the relevant images for our case
+    """
+    case_data = []
+
+    for dir in dirs:
+        if dir.startswith(case):
+            conv_type = dir.replace(case+"_", "")
+            path = os.path.join(temp_dir, pred_dir_name, dir)
+            for fi in os.listdir(path):
+                fi_path = os.path.join(path, fi)
+                if fi.endswith(pet_end):
+                    pet_img = nib.load(fi_path)
+                else:
+                    mask_img = nib.load(fi_path)
+            case_data.append([conv_type, pet_img, mask_img])
+    return case_data
+
+def get_differences(dict):
+    n = len(dict)
+    combos = get_combos(n)
+    differences = []
+    for combo in combos:
+        x,y = combo
+        _ = []
+        for u,v in zip(dict[titles_dict[keys[x]]], dict[titles_dict[keys[x]]]):
+            _.append(abs(u-v))
+        differences.append(_)
+    return differences
+
+def get_hist(output_dir, case_data):
+    """
+    Given all the data, provide the histograms of the differences
+    """
+
+
+def get_mask_matrix(case_dir, case_data):
+    """
+    Given all the data, provided a confusion matrix of the mask values
+    """
+    mask_vals_dict = {}
+    for data in case_data:
+        conv_type = data[0]
+        mask_img = data[2]
+        mask_val = mask_img.get_fdata().reshape(-1)
+        mask_vals_dict[conv_type]=mask_val 
+
+    diffs = get_differences(mask_vals_dict)
+
+    vals = np.array([
+    [0, sum(diffs[0]), sum(diffs[1]), sum(diffs[2]), sum(diffs[3]), sum(diffs[4])],
+    [0,0, sum(diffs[5]), sum(diffs[6]), sum(diffs[7]), sum(diffs[8])], 
+    [0,0,0, sum(diffs[9]), sum(diffs[10]), sum(diffs[11])],
+    [0,0,0,0, sum(diffs[12]), sum(diffs[13])], 
+    [0,0,0,0,0, sum(diffs[14])], 
+    [0,0,0,0,0,0]
+    ])
+
+    plt.rcParams["figure.figsize"] = [15, 7]
+    plt.rcParams["figure.autolayout"] = True
+    mask = np.tri(vals.shape[0], k=-1)
+    data = np.ma.array(vals, mask=mask)
+    plt.imshow(data, interpolation="nearest", cmap='viridis', extent=[-1, 1, -1, 1])
+    plt.title(f"Mask Confusion Matrix")
+    plt.colorbar()
+    for (x,y),label in np.ndenumerate(vals):
+        if x<=y:
+            plt.text((-5+2*y)/6, (5-2*x)/6,label,ha='center',va='center')
+    plt.xticks(ticks = [-5/6, -3/6, -1/6, 1/6, 3/6, 5/6],
+               labels = [titles_dict[a], titles_dict[b], titles_dict[c], titles_dict[d], titles_dict[e], titles_dict[f]])
+    plt.yticks(ticks = [-5/6, -3/6, -1/6, 1/6, 3/6, 5/6],
+               labels = [titles_dict[f], titles_dict[e], titles_dict[d], titles_dict[c], titles_dict[b], titles_dict[a]])
+    plt.savefig(os.path.join(case_dir, 'mask_vals.png'))
+    plt.clf()
