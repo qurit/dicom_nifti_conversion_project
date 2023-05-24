@@ -331,12 +331,6 @@ def get_differences(dict):
         differences.append(_)
     return differences
 
-def get_hist(output_dir, case_data):
-    """
-    Given all the data, provide the histograms of the differences
-    """
-
-
 def get_mask_matrix(case_dir, case_data):
     """
     Given all the data, provided a confusion matrix of the mask values
@@ -375,3 +369,60 @@ def get_mask_matrix(case_dir, case_data):
                labels = [titles_dict[f], titles_dict[e], titles_dict[d], titles_dict[c], titles_dict[b], titles_dict[a]])
     plt.savefig(os.path.join(case_dir, 'mask_vals.png'))
     plt.clf()
+
+def get_titles():
+    """
+    Get all titles for the histogram
+    """
+    combos = get_combos(len(keys))
+
+    titles = []
+    for combo in combos:
+        x,y = combo
+        title = f"{titles_dict[keys[x]]} vs. {titles_dict[keys[y]]}"
+        titles.append(title)
+    return titles
+
+def get_hist(case_dir, case_data):
+    """
+    Make histograms for the comparisons
+    """
+    
+    # Constants
+    bins=[0, 1e-10, 1e-9, 1e-8, 1e-7, 1e-6,
+          1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.1, 1, 10]
+    xmin = 1e-11
+    xmax = 10
+    no_rows = 3
+    no_cols = 5
+
+    pet_vals_dict = {}
+    for data in case_data:
+        conv_type = data[0]
+        pet_img = data[1]
+        pet_val = pet_img.get_fdata().reshape(-1)
+        pet_vals_dict[conv_type]=pet_val 
+
+    diffs = get_differences(pet_vals_dict)
+
+
+    fig, axs = plt.subplots(no_rows,no_cols, figsize=(20,16), sharey=True, sharex=True)
+    plt.subplots_adjust(wspace=0.4, hspace=0.2)
+
+    fig.suptitle('Conversion Method Differences')
+    fig.supylabel('Instances')
+    fig.supxlabel('Absolute Difference')
+
+
+    vals = np.array(diffs).reshape(no_rows, no_cols, -1)
+    titles = get_titles()
+    titles = np.array(titles).reshape(no_rows, no_cols)
+
+    for m in np.arange(no_rows):
+        for n in np.arange(no_cols):
+            axs[m][n].hist(vals[m][n], bins)
+            axs[m][n].semilogx()
+            axs[m][n].set_title(titles[m][n])
+            axs[m][n].set_xlim(xmin, xmax)
+    
+    fig.savefig(os.path.join(case_dir, 'histogram.png'))

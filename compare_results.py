@@ -34,6 +34,8 @@ for case in cases:
     os.mkdir(case_dir)
     case_data = get_case_data(dirs, case, temp_dir)
     get_mask_matrix(case_dir, case_data)
-    sys.stdout.write("\n"+F"Created confusion_matrix for {case}" "\n")
+    sys.stdout.write(f"Created confusion_matrix for {case}" "\n")
+    get_hist(case_dir, case_data)
+    sys.stdout.write(f"Created histogram for {case}" "\n")
 
     
