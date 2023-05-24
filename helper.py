@@ -304,6 +304,7 @@ def get_combos(n):
         for y in np.arange(x+1, n,1):
             combos.append([x,y])
     return combos
+
 def get_case_data(dirs, case, temp_dir):
     """
     Run through all the directories and get the relevant images for our case
@@ -417,6 +418,7 @@ def get_hist(diffs, case_dir):
             axs[m][n].set_xlim(xmin, xmax)
     
     fig.savefig(os.path.join(case_dir, 'histogram.png'))
+    plt.clf()
 
 def get_cut_differences(dict, cut):
     """
@@ -454,7 +456,7 @@ def get_sub_img(cut_subs, case_dir, cut):
     titles = np.array(titles).reshape(no_rows, no_cols)
 
     fig, axs = plt.subplots(no_rows,no_cols, figsize=(25,10), sharey=True, sharex=True, layout='constrained')
-    fig.suptitle('Subtracted Plots', y=1, fontsize=24)
+    fig.suptitle(f'{cut_dict[cut]} Subtracted Plots', y=1, fontsize=24)
 
     for m in np.arange(no_rows):
         for n in np.arange(no_cols):
