@@ -25,11 +25,13 @@ if not(os.path.isdir(output_dir)):
 
 # Dictionary: obtain all the cases
 cases = read_dict(temp_dir)
+no_cases = len(cases)
 
 # List of all directories in temp_dir
 dirs = get_dirs(temp_dir)
 
-for case in cases:
+for x,case in enumerate(cases):
+    sys.stdout.write(f"Working on case: {x+1}/{no_cases}" "\n")
     case_dir = os.path.join(output_dir, case)
     os.mkdir(case_dir)
     case_data = get_case_data(dirs, case, temp_dir)
@@ -37,5 +39,3 @@ for case in cases:
     sys.stdout.write(f"Created confusion_matrix for {case}" "\n")
     get_hist(case_dir, case_data)
     sys.stdout.write(f"Created histogram for {case}" "\n")
-
-    

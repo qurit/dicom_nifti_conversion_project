@@ -16,6 +16,10 @@ import textwrap
 import sys
 import nibabel as nib
 import matplotlib.pyplot as plt
+import math
+
+import warnings
+warnings.filterwarnings("ignore")
 
 
 # Constants
@@ -29,6 +33,7 @@ dict_name = 'cases'
 dict_ext = '.txt'
 pet_end = 'pet.nii'
 mask_end = 'predicted.nii'
+fontsize = 24
 
 keys = ['a', 'b', 'c', 'd', 'e', 'f']
 a,b,c,d,e,f = keys
@@ -269,12 +274,7 @@ def read_dict(temp_dir):
     dict_path = os.path.join(temp_dir, dict_name+dict_ext)
 
     file = open(dict_path,"r")
-    cases_ = file.readlines()
-
-    cases = []
-    for case_ in cases_:
-        case = case_[:-1]
-        cases.append(case)
+    cases = file.readlines()
 
     return cases
 
@@ -326,7 +326,7 @@ def get_differences(dict):
     for combo in combos:
         x,y = combo
         _ = []
-        for u,v in zip(dict[titles_dict[keys[x]]], dict[titles_dict[keys[x]]]):
+        for u,v in zip(dict[titles_dict[keys[x]]], dict[titles_dict[keys[y]]]):
             _.append(abs(u-v))
         differences.append(_)
     return differences
@@ -353,12 +353,12 @@ def get_mask_matrix(case_dir, case_data):
     [0,0,0,0,0,0]
     ])
 
-    plt.rcParams["figure.figsize"] = [15, 7]
+    plt.rcParams["figure.figsize"] = [8, 7]
     plt.rcParams["figure.autolayout"] = True
     mask = np.tri(vals.shape[0], k=-1)
     data = np.ma.array(vals, mask=mask)
     plt.imshow(data, interpolation="nearest", cmap='viridis', extent=[-1, 1, -1, 1])
-    plt.title(f"Mask Confusion Matrix")
+    plt.title("Mask Confusion Matrix", fontsize=fontsize)
     plt.colorbar()
     for (x,y),label in np.ndenumerate(vals):
         if x<=y:
@@ -389,10 +389,14 @@ def get_hist(case_dir, case_data):
     """
     
     # Constants
-    bins=[0, 1e-10, 1e-9, 1e-8, 1e-7, 1e-6,
-          1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 0.1, 1, 10]
-    xmin = 1e-11
-    xmax = 10
+    xmin = -12
+    xmax = 2
+    _bins = np.arange(xmin, xmax, 1)
+    bins = []
+    for _bin in _bins:
+        bin =math.pow(10, _bin)
+        bins.append(bin)
+
     no_rows = 3
     no_cols = 5
 
@@ -406,12 +410,13 @@ def get_hist(case_dir, case_data):
     diffs = get_differences(pet_vals_dict)
 
 
-    fig, axs = plt.subplots(no_rows,no_cols, figsize=(20,16), sharey=True, sharex=True)
+    fig, axs = plt.subplots(no_rows,no_cols, figsize=(22,16), sharey=True, sharex=False)
     plt.subplots_adjust(wspace=0.4, hspace=0.2)
 
-    fig.suptitle('Conversion Method Differences')
-    fig.supylabel('Instances')
-    fig.supxlabel('Absolute Difference')
+    fig.suptitle('Conversion Method Differences', fontsize=fontsize, y = 0.999)
+    fig.supylabel('Instances', fontsize=fontsize, x=0.01)
+    fig.supxlabel('Absolute Difference', fontsize=fontsize, y=0.01)
+
 
 
     vals = np.array(diffs).reshape(no_rows, no_cols, -1)
@@ -422,7 +427,7 @@ def get_hist(case_dir, case_data):
         for n in np.arange(no_cols):
             axs[m][n].hist(vals[m][n], bins)
             axs[m][n].semilogx()
-            axs[m][n].set_title(titles[m][n])
+            axs[m][n].set_title(titles[m][n], fontsize=18)
             axs[m][n].set_xlim(xmin, xmax)
     
     fig.savefig(os.path.join(case_dir, 'histogram.png'))
