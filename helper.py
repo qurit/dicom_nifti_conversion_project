@@ -17,7 +17,9 @@ import sys
 import nibabel as nib
 import matplotlib.pyplot as plt
 import math
-
+from matplotlib.colors import Normalize
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -43,6 +45,8 @@ titles_dict = {'a' : 'dicom2nifti',
                'd' : 'sitk',
                'e' : 'lifex',
                'f' : 'slicer'}
+
+cut_dict = {0:'Sagittal', 1: 'Coronal'}
 
 def bqml_to_suv(dcm_file: pydicom.FileDataset) -> float:
     """
@@ -320,6 +324,10 @@ def get_case_data(dirs, case, temp_dir):
     return case_data
 
 def get_differences(dict):
+    """
+    For an images of arbitrary (but equal) dimensions, compute the absolute
+    differences between all values and provide them as a 1D list
+    """
     n = len(dict)
     combos = get_combos(n)
     differences = []
@@ -331,19 +339,10 @@ def get_differences(dict):
         differences.append(_)
     return differences
 
-def get_mask_matrix(case_dir, case_data):
+def get_mask_matrix(diffs, case_dir):
     """
     Given all the data, provided a confusion matrix of the mask values
     """
-    mask_vals_dict = {}
-    for data in case_data:
-        conv_type = data[0]
-        mask_img = data[2]
-        mask_val = mask_img.get_fdata().reshape(-1)
-        mask_vals_dict[conv_type]=mask_val 
-
-    diffs = get_differences(mask_vals_dict)
-
     vals = np.array([
     [0, sum(diffs[0]), sum(diffs[1]), sum(diffs[2]), sum(diffs[3]), sum(diffs[4])],
     [0,0, sum(diffs[5]), sum(diffs[6]), sum(diffs[7]), sum(diffs[8])], 
@@ -372,7 +371,7 @@ def get_mask_matrix(case_dir, case_data):
 
 def get_titles():
     """
-    Get all titles for the histogram
+    Get all titles for the histogram/subtracted plots
     """
     combos = get_combos(len(keys))
 
@@ -383,7 +382,7 @@ def get_titles():
         titles.append(title)
     return titles
 
-def get_hist(case_dir, case_data):
+def get_hist(diffs, case_dir):
     """
     Make histograms for the comparisons
     """
@@ -396,28 +395,15 @@ def get_hist(case_dir, case_data):
     for _bin in _bins:
         bin =math.pow(10, _bin)
         bins.append(bin)
-
     no_rows = 3
     no_cols = 5
-
-    pet_vals_dict = {}
-    for data in case_data:
-        conv_type = data[0]
-        pet_img = data[1]
-        pet_val = pet_img.get_fdata().reshape(-1)
-        pet_vals_dict[conv_type]=pet_val 
-
-    diffs = get_differences(pet_vals_dict)
-
-
+    
     fig, axs = plt.subplots(no_rows,no_cols, figsize=(22,16), sharey=True, sharex=False)
     plt.subplots_adjust(wspace=0.4, hspace=0.2)
 
     fig.suptitle('Conversion Method Differences', fontsize=fontsize, y = 0.999)
     fig.supylabel('Instances', fontsize=fontsize, x=0.01)
     fig.supxlabel('Absolute Difference', fontsize=fontsize, y=0.01)
-
-
 
     vals = np.array(diffs).reshape(no_rows, no_cols, -1)
     titles = get_titles()
@@ -427,7 +413,92 @@ def get_hist(case_dir, case_data):
         for n in np.arange(no_cols):
             axs[m][n].hist(vals[m][n], bins)
             axs[m][n].semilogx()
-            axs[m][n].set_title(titles[m][n], fontsize=18)
+            axs[m][n].set_title(titles[m][n], fontsize=16)
             axs[m][n].set_xlim(xmin, xmax)
     
     fig.savefig(os.path.join(case_dir, 'histogram.png'))
+
+def get_cut_differences(dict, cut):
+    """
+    Given a specific cut: {1:coronal, 0:sagittal}, provide all
+    of the subtracted images. The dictionary will have the images
+    """
+    n = len(dict)
+    combos = get_combos(n)
+    cut_subs = []
+    for combo in combos:
+        cut_datas = []
+        for ix in combo:
+            img = dict[titles_dict[keys[ix]]]
+            cut_data = img.get_fdata()[cut, :, :]
+            cut_datas.append(cut_data)
+        cut_sub = abs(cut_datas[0]-cut_datas[1])
+        cut_subs.append(cut_sub)
+    return cut_subs
+
+
+def get_sub_img(cut_subs, case_dir, cut):
+    """
+    Given the cut differences (for all conversion types),
+    provide the 
+    """
+    # Constants
+    no_rows = 3
+    no_cols = 5
+    cmap=cm.get_cmap('viridis')
+    #normalizer=Normalize(0,0.001)
+    im=cm.ScalarMappable(cmap=cmap)
+
+    vals = np.array(cut_subs).reshape(no_rows, no_cols, 128, 256, 1)
+    titles = get_titles()
+    titles = np.array(titles).reshape(no_rows, no_cols)
+
+    fig, axs = plt.subplots(no_rows,no_cols, figsize=(25,10), sharey=True, sharex=True, layout='constrained')
+    fig.suptitle('Subtracted Plots', y=1, fontsize=24)
+
+    for m in np.arange(no_rows):
+        for n in np.arange(no_cols):
+            axs[m][n].imshow(vals[m][n], cmap=cmap)
+            axs[m][n].set_title(titles[m][n], size=18)
+            axs[m][n].axis('off')
+    fig.colorbar(im, ax=axs[:, n], location='right')
+    plt.savefig(os.path.join(case_dir, f'{cut_dict[cut]} Subtracted Plots.png'))
+    plt.clf()
+
+
+def get_subtracted_plots(pet_img_dict, case_dir):
+    """
+    Make the subtracted plots for the given comparisons
+    """
+    cuts = [0,1]
+
+    for cut in cuts:
+        cut_subs = get_cut_differences(pet_img_dict, cut)
+        get_sub_img(cut_subs, case_dir, cut)
+
+
+
+def get_results(case_dir, case_data):
+    """
+    Given all the data, provide a confusion matrix of the mask values,
+    histogram of the pet values absolute differences and subtracted images
+    """
+    pet_vals_dict = {}
+    pet_img_dict = {}
+    mask_vals_dict = {}
+    for data in case_data:
+        conv_type = data[0]
+        pet_img = data[1]
+        pet_img_dict[conv_type] = pet_img
+        pet_val = pet_img.get_fdata().reshape(-1)
+        pet_vals_dict[conv_type]=pet_val 
+        mask_img = data[2]
+        mask_val = mask_img.get_fdata().reshape(-1)
+        mask_vals_dict[conv_type]=mask_val 
+        
+    pet_diffs = get_differences(pet_vals_dict)
+    mask_diffs = get_differences(mask_vals_dict)
+
+    get_hist(pet_diffs, case_dir)
+    get_mask_matrix(mask_diffs, case_dir)
+    get_subtracted_plots(pet_img_dict, case_dir)

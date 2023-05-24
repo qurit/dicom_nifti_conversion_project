@@ -35,7 +35,4 @@ for x,case in enumerate(cases):
     case_dir = os.path.join(output_dir, case)
     os.mkdir(case_dir)
     case_data = get_case_data(dirs, case, temp_dir)
-    get_mask_matrix(case_dir, case_data)
-    sys.stdout.write(f"Created confusion_matrix for {case}" "\n")
-    get_hist(case_dir, case_data)
-    sys.stdout.write(f"Created histogram for {case}" "\n")
+    get_results(case_dir, case_data)
