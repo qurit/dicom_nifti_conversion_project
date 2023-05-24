@@ -40,7 +40,7 @@ python create_nifti_files.py -i <path\to\input\dir> -o <path\to\output\dir>
 You can additionally specify which conversion methods to be used (by default) all of them are selected. Consult the following for an extensive list:
 
 ```
-usage: PROG [-h] -i INPUT_DIR -o OUTPUT_DIR [-a {0,1}] [-b {0,1}] [-c {0,1}] [-d {0,1}] [-e {0,1}] [-f {0,1}]
+usage: PROG [-h] -i INPUT_DIR -o OUTPUT_DIR
 
 Creation of NIfTI Files
 --------------------------------
@@ -66,12 +66,6 @@ options:
                         path to dir with DICOM series folders
   -o OUTPUT_DIR, --output_dir OUTPUT_DIR
                         path to dir where NIfTI files will be saved
-  -a {0,1}, --a {0,1}   1 if dicom2nifti is considered, 0 otherwise
-  -b {0,1}, --b {0,1}   1 if dcm2niix is considered, 0 otherwise
-  -c {0,1}, --c {0,1}   1 if dcmstack is considered, 0 otherwise
-  -d {0,1}, --d {0,1}   1 if sitk is considered, 0 otherwise
-  -e {0,1}, --e {0,1}   1 if lifex is considered, 0 otherwise
-  -f {0,1}, --f {0,1}   1 if slicer is considered, 0 otherwise
 ```
 
 After the creation of the NIfTI files (using the `dicom2nifti`, `dcm2niix`, `dcmstack` and `SimpleITK` methods) the user should add the manually generated LIFEx and 3D Slicer NIfTI files to their respective directories as well in the output directory. Afterwards, the `apply_ai4elife.py` script is ran. Note that this should specify be run with the ai4elife environment. Its corresponding github repository must also be downloaded on the device as well. This is run with the following code:
