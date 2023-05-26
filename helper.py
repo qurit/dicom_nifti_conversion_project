@@ -704,7 +704,7 @@ def get_results(case_dir, case_data, case):
     get_subtracted_plots(pet_img_dict, case_dir)
     get_dice_score(gt_and_mask_dict, case_dir, case, case_columns)
 
-def get_surrogate_dict(fi_keys, input_dir, fis_dict):
+def get_surrogate_dict(fi_keys, temp_dir, fis_dict):
     """
     Provide a dictionary with all the relevant data from the 
     surrogate .csv files
@@ -712,7 +712,7 @@ def get_surrogate_dict(fi_keys, input_dir, fis_dict):
     surrogate_data = {}
 
     for fi_key in fi_keys:
-        df = pd.read_csv(os.path.join(input_dir, fis_dict[fi_key]))
+        df = pd.read_csv(os.path.join(temp_dir, fis_dict[fi_key]))
         pids = df.iloc[:, 0]
         sag_TMTVs = df.iloc[:, 1]
         cor_TMTVs = df.iloc[:, 2]
@@ -754,7 +754,7 @@ def combine_case_data(case_entries, surrogate_data, case_df_vals):
     the correct indices) into entries for our final 
     .csv file
     """
-    dict_vals = []
+    combined_vals = []
     for ix, conv_type in case_entries:
         pred_sag_TMTV= surrogate_data[PRED][SAG][ix]
         pred_cor_TMTV= surrogate_data[PRED][COR][ix]
@@ -767,7 +767,8 @@ def combine_case_data(case_entries, surrogate_data, case_df_vals):
                 case_df_val.extend([pred_sag_TMTV, gt_sag_TMTV,
                                     pred_cor_TMTV, gt_cor_TMTV,
                                     pred_tot_TMTV, gt_tot_TMTV])
-    return case_df_val
+                combined_vals.append(case_df_val)
+    return combined_vals
 
 def get_dict_vals(cases, output_dir, surrogate_data):
     """
@@ -775,29 +776,28 @@ def get_dict_vals(cases, output_dir, surrogate_data):
     """
     dict_vals = []
     for case in cases:
-        # print(case)
         # Get relevant info
         case_df_vals = get_case_df_vals(output_dir, case)
         case_entries = get_case_entries(surrogate_data, case)
         # Combine them accordingly
         entry = combine_case_data(case_entries, surrogate_data,
-                                      case_df_vals)
+                                  case_df_vals)
         # print(entry)
-        dict_vals.append(entry)
+        dict_vals.extend(entry)
     return dict_vals
 
 
-def make_result_file(input_dir, output_dir, cases):
+def make_result_file(temp_dir, output_dir, cases):
     """
     Make the final .csv file with the entries containing the case,
     conversion type, dice scores and TMTV values. 
 
     Will take values from the output_dir (dice scores from the .csv files)
-    and the input_dir (with the surrogate .csv files). 
+    and the temp_dir (with the surrogate .csv files). 
     """
     fis_dict = {GT: gt_csv_fi, PRED: pred_csv_fi}
 
-    surrogate_data = get_surrogate_dict(fi_keys, input_dir, fis_dict)
+    surrogate_data = get_surrogate_dict(fi_keys, temp_dir, fis_dict)
 
     dict_vals = get_dict_vals(cases, output_dir, surrogate_data)
 
