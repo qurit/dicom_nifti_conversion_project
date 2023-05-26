@@ -3,23 +3,34 @@ Analyzing the effects of different DICOM to NIfTI file conversion on Medical Ima
 
 # Introduction
 
-The purpose of this repository is to explore the effects of different DICOM to NIfTI file conversion techniques on Medical imaging AI training models. Because these two file formats are used extensively in this area of research, it is pivotal to understand the effects of changing between them. In this repository, we will explicitly be dealing with `dicom2nifti`, `dcm2niix`, `dcmstack`, `SimpleITK` in addition to LIFEx and 3D Slicer Applications. 
+The purpose of this repository is to explore the effects of different DICOM to NIfTI file conversion techniques on Medical imaging AI training models. Because these two file formats are used extensively in this area of research, it is pivotal to understand the effects of changing between them. In this repository, we will explicitly be dealing with `dicom2nifti`, `dcm2niix`, `dcmstack`, a script using `SimpleITK` in addition to built-in functions in LIFEx and 3D Slicer Applications. 
 
-With a focus on PET values, we will be comparing the raw data and generated images by sending the data through `ai4elife`. 
+**High Level Methodology**: Convert our DICOM series PET files into a single NIfTI file using the 6 mentioned techniques (4 of which the code accomplishes, the other 2 are done manually). To simulate the effects on training, we send the data through `ai4elife`. We compare the raw predicted PET values and compare the predicted masks with the ground truth masks. 
 
-# Directory Structure
-This is the required directory structure for the input directory for `create_nifti_files.py`:
+# METHODOLOGY
+The first step is to create the NIfTI files with the 4 mentioned methods (not LIFEx and 3D slicer as these must be manually done). 
+The required directory structure for the input directory for `create_nifti_files.py` is provided as follows
 ```
 |-- input folder                                        <-- The main folder of all input PET and GT files
 
 |      |-- parent folder (case_1)                       <-- Individual Folder with Unique ID
 |           |-- PET                                     <-- The pet folder with .dcm files
-                 | -- *.dcm                             <-- PET Image in .dcm format (multiple files)
+                 | -- *.dcm                             <-- PET Image in .dcm format
+                 | -- *.dcm                             <-- PET Image in .dcm format
+                 .
+                 .
+                 .
+                 | -- *.dcm                             <-- PET Image in .dcm format
 |           |-- GT                                      <-- The ground truth folder with a .dcm file 
                  | -- *.dcm                             <-- GET Image in .dcm format (one file)
 |      |-- parent folder (case_2)                       <-- Individual Folder with Unique ID
 |           |-- PET                                     <-- The pet folder with .dcm files
-                 | -- *.dcm                             <-- PET Image in .dcm format (multiple files)
+                 | -- *.dcm                             <-- PET Image in .dcm format
+                 | -- *.dcm                             <-- PET Image in .dcm format
+                 .
+                 .
+                 .
+                 | -- *.dcm                             <-- PET Image in .dcm format
 |           |-- GT                                      <-- The ground truth folder with a .dcm file 
                  | -- *.dcm                             <-- GET Image in .dcm format (one file)
 |           .
@@ -27,46 +38,51 @@ This is the required directory structure for the input directory for `create_nif
 |           .
 |      |-- parent folder (case_n)                       <-- Individual Folder with Unique ID
 |           |-- PET                                     <-- The pet folder with .dcm files
-                 | -- *.dcm                             <-- PET Image in .dcm format (multiple files)
+                 | -- *.dcm                             <-- PET Image in .dcm format
+                 | -- *.dcm                             <-- PET Image in .dcm format
+                 .
+                 .
+                 .
+                 | -- *.dcm                             <-- PET Image in .dcm format
 |           |-- GT                                      <-- The ground truth folder with a .dcm file 
                  | -- *.dcm                             <-- GET Image in .dcm format (one file)
 ```
-
-# Procedure
-Firstly create all the relevant files (with conversions) with the following command:
+With this directory structure, run the following command:
 ```
 python create_nifti_files.py -i <path\to\input\dir> -o <path\to\output\dir>
 ```
-You can additionally specify which conversion methods to be used (by default) all of them are selected. Consult the following for an extensive list:
+This will provide the following directory structure:
+|-- temp_folder_1                                       <-- Output folder of create_nifti_files.py,
+                                                            Input folder of apply_ai4elife.py
 
-```
-usage: PROG [-h] -i INPUT_DIR -o OUTPUT_DIR
-
-Creation of NIfTI Files
---------------------------------
-    This code will create the NIfTI files for the 
-    dicom2nifti, dcm2niix and dcmstack conversion
-    methods. It will provide these in directories
-    as required by the ai4elife program. It will also
-    create the directories for lifex and 3D-slicer but
-    these NIfTI files must be manually created
---------------------------------
-    This code will use the following convention for 
-    referring to the different conversion methods.
-    -a : dicom2nifti
-    -b : dcm2niix
-    -c : dcmstack
-    -d : sitk
-    -e : lifex
-    -f : slicer
-
-options:
-  -h, --help            show this help message and exit
-  -i INPUT_DIR, --input_dir INPUT_DIR
-                        path to dir with DICOM series folders
-  -o OUTPUT_DIR, --output_dir OUTPUT_DIR
-                        path to dir where NIfTI files will be saved
-```
+|      |-- case_1_convmethod_1                          <-- case_1 convmethod_1 folder
+|           |-- gt                                      <-- The ground truth folder
+                 | -- *.nii.gz                          <-- PET Image in .dcm format
+|           |-- GT                                      <-- The ground truth folder with a .dcm file 
+                 | -- *.dcm                             <-- GET Image in .dcm format (one file)
+|      |-- parent folder (case_2)                       <-- Individual Folder with Unique ID
+|           |-- PET                                     <-- The pet folder with .dcm files
+                 | -- *.dcm                             <-- PET Image in .dcm format
+                 | -- *.dcm                             <-- PET Image in .dcm format
+                 .
+                 .
+                 .
+                 | -- *.dcm                             <-- PET Image in .dcm format
+|           |-- GT                                      <-- The ground truth folder with a .dcm file 
+                 | -- *.dcm                             <-- GET Image in .dcm format (one file)
+|           .
+|           .
+|           .
+|      |-- parent folder (case_n)                       <-- Individual Folder with Unique ID
+|           |-- PET                                     <-- The pet folder with .dcm files
+                 | -- *.dcm                             <-- PET Image in .dcm format
+                 | -- *.dcm                             <-- PET Image in .dcm format
+                 .
+                 .
+                 .
+                 | -- *.dcm                             <-- PET Image in .dcm format
+|           |-- GT                                      <-- The ground truth folder with a .dcm file 
+                 | -- *.dcm                             <-- GET Image in .dcm format (one file)
 
 After the creation of the NIfTI files (using the `dicom2nifti`, `dcm2niix`, `dcmstack` and `SimpleITK` methods) the user should add the manually generated LIFEx and 3D Slicer NIfTI files to their respective directories as well in the output directory. Afterwards, the `apply_ai4elife.py` script is ran. Note that this should specify be run with the ai4elife environment. Its corresponding github repository must also be downloaded on the device as well. This is run with the following code:
 ```
