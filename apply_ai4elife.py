@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 
-from helper import *
+import argparse
+import textwrap
+import sys
 import os
+
+
+# Constants
+dict_name = 'cases'
+dict_ext = '.txt'
 
 # Arguments to be passed
 argParser = argparse.ArgumentParser(
@@ -46,5 +53,3 @@ ai_exe = f"python test_env.py --input_dir {input_dir} --output_dir {output_dir} 
 os.system(ai_exe)
 # Return to start
 os.chdir(cwd)
-
-    
