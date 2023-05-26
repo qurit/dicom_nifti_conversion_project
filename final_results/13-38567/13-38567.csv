@@ -1,0 +1,7 @@
+Case,Conversion Type,Sagittal Dice Score,Coronal Dice Score
+13-38567,dicom2nifti,0.0,0.0
+13-38567,dcm2niix,0.0,0.0
+13-38567,dcmstack,0.0,0.0
+13-38567,sitk,0.0,0.0
+13-38567,lifex,0.0,0.0
+13-38567,slicer,0.0,0.0
