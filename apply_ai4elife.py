@@ -5,10 +5,7 @@ import textwrap
 import sys
 import os
 
-
-# Constants
-dict_name = 'cases'
-dict_ext = '.txt'
+from all_constants import *
 
 # Arguments to be passed
 argParser = argparse.ArgumentParser(

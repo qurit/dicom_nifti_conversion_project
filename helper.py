@@ -24,50 +24,7 @@ import matplotlib.cm as cm
 import warnings
 warnings.filterwarnings("ignore")
 
-
-# Constants
-pet_dir_name = 'PET'
-gt_dir_name = 'GT'
-fi_ext = '.nii.gz'
-sitk_path = './sitk.py'
-ai4elife_pet_dir_name = 'pet'
-ai4elife_gt_dir_name = 'gt'
-pred_dir_name = 'predicted_data'
-dict_name = 'cases'
-dict_ext = '.txt'
-pet_end = 'pet.nii'
-pred_end = 'predicted.nii'
-gt_end = 'ground_truth.nii'
-mask_end = 'predicted.nii'
-fontsize = 24
-no_rt_struct_prefix = 'PETCT'
-case_columns = ["Case", "Conversion Type", "Sagittal Dice Score", "Coronal Dice Score"]
-all_columns = case_columns+["Predicted Sagittal TMTV", "Ground Truth Sagittal TMTV",
-                 "Predicted Coronal TMTV", "Ground Truth Sagittal TMTV",
-                 "Predicted Total TMTV", "Ground Truth Total TMTV"]
-csv_ext = '.csv'
-gt_csv_fi = 'surrogate_ground_truth.csv'
-pred_csv_fi = 'surrogate_predicted.csv'
-
-keys = ['a', 'b', 'c', 'd', 'e', 'f']
-a,b,c,d,e,f = keys
-titles_dict = {'a' : 'dicom2nifti',
-               'b' : 'dcm2niix',
-               'c' : 'dcmstack',
-               'd' : 'sitk',
-               'e' : 'lifex',
-               'f' : 'slicer'}
-
-cuts = [0,1]
-cut_dict = {0:'Sagittal', 1: 'Coronal'}
-
-GT='gt'
-PRED='pred'
-PID='pid'
-SAG='sag'
-COR='cor'
-TOT='tot'
-fi_keys = [GT, PRED]
+from all_constants import *
 
 def bqml_to_suv(dcm_file: pydicom.FileDataset) -> float:
     """
@@ -384,7 +341,6 @@ def file_conversion(input_dir, output_dir):
                 sys.stdout.write("\n"+f"-"*100+ "\n")
                 sys.stdout.write(f"{i+1}/{no_dirs}: Working on {name}"+ "\n")
                 pet_dir = os.path.join(input_path, pet_dir_name)
-                gt_dir = os.path.join(input_path, gt_dir_name)
                 suv_factor, Rescale_Slope, Rescale_Intercept = get_suv(pet_dir)
 
                 # a
@@ -610,12 +566,17 @@ def get_sub_img(cut_subs, case_dir, cut):
     titles = get_titles()
     titles = np.array(titles).reshape(no_rows, no_cols)
 
-    fig, axs = plt.subplots(no_rows,no_cols, figsize=(25,10), sharey=True, sharex=True, layout='constrained')
-    fig.suptitle(f'{cut_dict[cut]} Subtracted Plots', y=1, fontsize=24)
+    x_size = 18
+    y_size = 16
+
+    fig, axs = plt.subplots(no_rows,no_cols, figsize=(x_size,y_size), sharey=True, sharex=True, layout='constrained')
 
     for m in np.arange(no_rows):
         for n in np.arange(no_cols):
-            axs[m][n].imshow(vals[m][n], cmap=cmap)
+            data = vals[m][n]
+            data = np.swapaxes(data,1,0)
+            data = data[::-1, :, :]
+            axs[m][n].imshow(data, cmap=cmap)
             axs[m][n].set_title(titles[m][n], size=18)
             axs[m][n].axis('off')
     fig.colorbar(im, ax=axs[:, n], location='right')
