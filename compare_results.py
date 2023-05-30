@@ -12,12 +12,14 @@ argParser = argparse.ArgumentParser(
         '''))
 argParser.add_argument("-i", "--input_dir", help="path to dir with ai4elife output ", type=str, required=True)
 argParser.add_argument("-o", "--output_dir", help="path to dir where results will be saved", type=str, required=True)
+argParser.add_argument("-t", "--temp_dir", help="path to dir with inputs for ai4elife", type=str, required=True)
 
 args = argParser.parse_args()
 
 #input_dir = args.input_dir
 input_dir = args.input_dir
 output_dir = args.output_dir
+temp_dir = args.temp_dir
 
 if not(os.path.isdir(output_dir)):
     os.mkdir(output_dir)
@@ -34,6 +36,7 @@ for x,case in enumerate(cases):
     case_dir = os.path.join(output_dir, case)
     os.mkdir(case_dir)
     case_data = get_case_data(dirs, case, input_dir)
-    get_results(case_dir, case_data, case)
+    vol_data = get_vol_data(case, temp_dir)
+    get_results(case_dir, case_data, vol_data, case)
 
 make_result_file(input_dir, output_dir, cases)

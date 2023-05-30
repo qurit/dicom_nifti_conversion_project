@@ -14,7 +14,7 @@ gt_end = 'ground_truth.nii'
 mask_end = 'predicted.nii'
 fontsize = 24
 no_rt_struct_prefix = 'PETCT'
-case_columns = ["Case", "Conversion Type", "Sagittal Dice Score", "Coronal Dice Score"]
+case_columns = ["Case", "Conversion Type", "Sagittal Dice Score", "Coronal Dice Score", "Mean Absolute Error"]
 all_columns = case_columns+["Predicted Sagittal TMTV", "Ground Truth Sagittal TMTV",
                  "Predicted Coronal TMTV", "Ground Truth Sagittal TMTV",
                  "Predicted Total TMTV", "Ground Truth Total TMTV"]

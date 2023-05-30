@@ -5,6 +5,7 @@ import textwrap
 import sys
 import os
 import nibabel as nib
+from tqdm import tqdm
 
 from all_constants import *
 
@@ -47,9 +48,7 @@ def coordinate_fis(input_dir):
     nibabel and apply the mirroring (to coordinate
     all of them) if required
     """
-    cases = os.listdir(input_dir)
-    N = len(cases)
-    for n,case in enumerate(cases):
+    for case in tqdm(os.listdir(input_dir)):
         nifti_fi_path = get_nifti_fi_path(case, input_dir)
         conv_type = check_conv_type(case)
         img, affine = extract_img_affine(nifti_fi_path)
@@ -57,7 +56,6 @@ def coordinate_fis(input_dir):
             img = img[:, ::-1, :]
         output_img = nib.Nifti1Image(img, affine)
         nib.save(output_img, nifti_fi_path)
-        sys.stdout.write(f"{n+1}/{N}"+"\n")
 
 argParser = argparse.ArgumentParser(
     prog='PROG',

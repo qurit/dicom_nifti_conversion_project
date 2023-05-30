@@ -229,7 +229,7 @@ def make_gt_dirs(dirs):
         gt_dirs.append(gt_dir)
     return gt_dirs
 
-def buildMaskArray(file, seriesPath, labelPath) -> np.ndarray:
+def buildMaskArray(fi, seriesPath, labelPath) -> np.ndarray:
     """
     Helper for the following function: taken from rt_utils
     """
@@ -435,6 +435,25 @@ def get_case_data(dirs, case, input_dir):
             case_data.append([conv_type, pet_img, mask_img, gt_img])
     return case_data
 
+def get_vol_data(case, temp_dir):
+    """
+    Get all the volume datas relevant to this case
+    """
+    vol_data = []
+    for dir in os.listdir(temp_dir):
+        if dir.startswith(case):
+            dir_path = os.path.join(temp_dir, dir)
+            conv_type = dir.replace(case+"_", "")
+            pet_path = os.path.join(dir_path, ai4elife_pet_dir_name)
+            fis = os.listdir(pet_path)
+            for fi in fis:
+                if fi.endswith(fi_ext):
+                    pet_fi = fi
+            fi_path = os.path.join(pet_path, pet_fi)
+            img = nib.load(fi_path)
+            vol_data.append([conv_type, img])
+    return vol_data        
+
 def get_differences(dict):
     """
     For an images of arbitrary (but equal) dimensions, compute the absolute
@@ -619,24 +638,42 @@ def compute_dices(img1, img2):
         scores.append(cut_dice)
 
     return scores
-    
 
-def get_dice_score(gt_and_mask_dict, case_dir, case, case_columns):
+def compute_mae(key, vol_vals_dict):
+    """
+    Compute the mean absolute error vs. the sitk method
+    """
+    if key==d:
+        return 0
+    else:
+        ref_vals = vol_vals_dict[titles_dict[d]]
+        comp_vals = vol_vals_dict[titles_dict[key]]
+        aes = []
+        n = len(ref_vals)
+        for (r,c) in zip(ref_vals,comp_vals):
+            ae = abs(r-c)
+            aes.append(ae)
+        mae = sum(aes)/n
+        return mae
+
+def get_num_vals(gt_and_mask_dict, vol_vals_dict, case_dir, case, case_columns):
     """"
-    Provided with the predicted mask and gt mask, compute the dice-score and 
-    output a .csv file
+    Provided with the predicted mask and gt mask, compute the dice-score
+    and mean absolute error and provide a .csv file
     """
     entries = []
     for key in keys:
         gt, mask = gt_and_mask_dict[titles_dict[key]]
-        sag_dice_score, cor_dice_score = compute_dices(gt,mask)
-        entry = [case, titles_dict[key], sag_dice_score, cor_dice_score]
+        sag_dice_score, cor_dice_score = compute_dices(gt, mask)
+        mean_abs_error =compute_mae(key, vol_vals_dict)
+        entry = [case, titles_dict[key], sag_dice_score,
+                 cor_dice_score, mean_abs_error]
         entries.append(entry)
 
     df = pd.DataFrame(entries, columns=case_columns)
     df.to_csv(os.path.join(case_dir, f"{case}.csv"), index=False)
 
-def get_results(case_dir, case_data, case):
+def get_results(case_dir, case_data, vol_data, case):
     """
     Given all the data, provide a confusion matrix of the mask values,
     histogram of the pet values absolute differences and subtracted images
@@ -656,6 +693,13 @@ def get_results(case_dir, case_data, case):
         mask_vals_dict[conv_type]=mask_val 
         gt_img = data[3]
         gt_and_mask_dict[conv_type] = [gt_img, mask_img]
+    
+    vol_vals_dict={}
+    for data in vol_data:
+        conv_type = data[0]
+        vol_img = data[1]
+        vol_img_vals = vol_img.get_fdata().reshape(-1)
+        vol_vals_dict[conv_type] = vol_img_vals
         
     pet_diffs = get_differences(pet_vals_dict)
     mask_diffs = get_differences(mask_vals_dict)
@@ -663,7 +707,8 @@ def get_results(case_dir, case_data, case):
     get_hist(pet_diffs, case_dir)
     get_mask_matrix(mask_diffs, case_dir)
     get_subtracted_plots(pet_img_dict, case_dir)
-    get_dice_score(gt_and_mask_dict, case_dir, case, case_columns)
+    get_num_vals(gt_and_mask_dict, vol_vals_dict,
+                 case_dir, case, case_columns)
 
 def get_surrogate_dict(fi_keys, temp_dir, fis_dict):
     """
