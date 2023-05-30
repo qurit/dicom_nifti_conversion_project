@@ -9,11 +9,10 @@ from tqdm import tqdm
 
 from all_constants import *
 
-def get_nifti_fi_path(case, input_dir):
+def get_nifti_fi_path(case_path):
     """
     Get the path of the nifti file
     """
-    case_path = os.path.join(input_dir, case)
     pet_path = os.path.join(case_path, ai4elife_pet_dir_name)
     for fi in os.listdir(pet_path):
         if fi.endswith(fi_ext):
@@ -49,13 +48,15 @@ def coordinate_fis(input_dir):
     all of them) if required
     """
     for case in tqdm(os.listdir(input_dir)):
-        nifti_fi_path = get_nifti_fi_path(case, input_dir)
-        conv_type = check_conv_type(case)
-        img, affine = extract_img_affine(nifti_fi_path)
-        if (mir_required[conv_type]):
-            img = img[:, ::-1, :]
-        output_img = nib.Nifti1Image(img, affine)
-        nib.save(output_img, nifti_fi_path)
+        case_path = os.path.join(input_dir, case)
+        if os.path.isdir(case_path):
+            nifti_fi_path = get_nifti_fi_path(case_path)
+            conv_type = check_conv_type(case)
+            img, affine = extract_img_affine(nifti_fi_path)
+            if (mir_required[conv_type]):
+                img = img[:, ::-1, :]
+            output_img = nib.Nifti1Image(img, affine)
+            nib.save(output_img, nifti_fi_path)
 
 argParser = argparse.ArgumentParser(
     prog='PROG',
