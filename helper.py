@@ -21,6 +21,7 @@ import math
 from matplotlib.colors import Normalize
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+from tqdm import tqdm
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -109,8 +110,6 @@ def a_conv(output_path, pet_dir):
     fi_path = os.path.join(output_path, titles_dict[a]+fi_ext)
     os.rename(os.path.join(output_path, fi), fi_path)
 
-    sys.stdout.write(f"{titles_dict[a]} complete\n")
-
     return fi_path
             
 def b_conv(output_path, pet_dir):
@@ -123,8 +122,6 @@ def b_conv(output_path, pet_dir):
     fi_name = titles_dict[b]+fi_ext
     fi_path = os.path.join(output_path, fi_name)
 
-    sys.stdout.write(f"{titles_dict[b]} complete\n")
-
     return fi_path
 
 def c_conv(output_path, pet_dir):
@@ -136,7 +133,6 @@ def c_conv(output_path, pet_dir):
     
     fi_name = titles_dict[c]+fi_ext
     fi_path = os.path.join(output_path, fi_name)
-    sys.stdout.write(f"{titles_dict[c]} complete\n")
 
     return fi_path
 
@@ -178,7 +174,6 @@ def d_conv(output_path, pet_dir):
     """
     d_exe = f'python {sitk_path} -i {pet_dir} -o {output_path} -f {titles_dict[d]}'
     os.system(d_exe)
-    sys.stdout.write(f"{titles_dict[d]} complete\n")
 
 def get_suv(pet_dir):
     """
@@ -309,7 +304,6 @@ def gt_conv(case_dir, gt_dirs, name, a_path):
     n=len(gt_dirs)
     for m in np.arange(1, n):
         shutil.copy(os.path.join(dir_0, fi_name), os.path.join(gt_dirs[m], fi_name))
-    sys.stdout.write(f"ground truth complete")
 
 def make_dict(names_, output_dir):
     """
@@ -331,15 +325,12 @@ def file_conversion(input_dir, output_dir):
     """
     names = []
     dirs = os.listdir(input_dir)
-    no_dirs = len(dirs)
-    for i,name in enumerate(dirs):
+    for name in tqdm(dirs):
         input_path = os.path.join(input_dir, name)
         # The directories will correspond to individual patients
         try:
             if (os.path.isdir(input_path)):
                 names.append(name)
-                sys.stdout.write("\n"+f"-"*100+ "\n")
-                sys.stdout.write(f"{i+1}/{no_dirs}: Working on {name}"+ "\n")
                 pet_dir = os.path.join(input_path, pet_dir_name)
                 suv_factor, Rescale_Slope, Rescale_Intercept = get_suv(pet_dir)
 

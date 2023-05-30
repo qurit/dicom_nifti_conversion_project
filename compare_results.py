@@ -30,8 +30,7 @@ no_cases = len(cases)
 # List of all directories in temp_dir
 dirs = get_dirs(input_dir)
 
-for x,case in enumerate(cases):
-    sys.stdout.write(f"Working on case: {x+1}/{no_cases}" "\n")
+for case in tqdm(cases):
     case_dir = os.path.join(output_dir, case)
     os.mkdir(case_dir)
     case_data = get_case_data(dirs, case, input_dir)
