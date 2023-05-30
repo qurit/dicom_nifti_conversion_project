@@ -19,55 +19,12 @@ import nibabel as nib
 import matplotlib.pyplot as plt
 import math
 from matplotlib.colors import Normalize
-import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+from tqdm import tqdm
 import warnings
 warnings.filterwarnings("ignore")
 
-
-# Constants
-pet_dir_name = 'PET'
-gt_dir_name = 'GT'
-fi_ext = '.nii.gz'
-sitk_path = './sitk.py'
-ai4elife_pet_dir_name = 'pet'
-ai4elife_gt_dir_name = 'gt'
-pred_dir_name = 'predicted_data'
-dict_name = 'cases'
-dict_ext = '.txt'
-pet_end = 'pet.nii'
-pred_end = 'predicted.nii'
-gt_end = 'ground_truth.nii'
-mask_end = 'predicted.nii'
-fontsize = 24
-no_rt_struct_prefix = 'PETCT'
-case_columns = ["Case", "Conversion Type", "Sagittal Dice Score", "Coronal Dice Score"]
-all_columns = case_columns+["Predicted Sagittal TMTV", "Ground Truth Sagittal TMTV",
-                 "Predicted Coronal TMTV", "Ground Truth Sagittal TMTV",
-                 "Predicted Total TMTV", "Ground Truth Total TMTV"]
-csv_ext = '.csv'
-gt_csv_fi = 'surrogate_ground_truth.csv'
-pred_csv_fi = 'surrogate_predicted.csv'
-
-keys = ['a', 'b', 'c', 'd', 'e', 'f']
-a,b,c,d,e,f = keys
-titles_dict = {'a' : 'dicom2nifti',
-               'b' : 'dcm2niix',
-               'c' : 'dcmstack',
-               'd' : 'sitk',
-               'e' : 'lifex',
-               'f' : 'slicer'}
-
-cuts = [0,1]
-cut_dict = {0:'Sagittal', 1: 'Coronal'}
-
-GT='gt'
-PRED='pred'
-PID='pid'
-SAG='sag'
-COR='cor'
-TOT='tot'
-fi_keys = [GT, PRED]
+from all_constants import *
 
 def bqml_to_suv(dcm_file: pydicom.FileDataset) -> float:
     """
@@ -152,8 +109,6 @@ def a_conv(output_path, pet_dir):
     fi_path = os.path.join(output_path, titles_dict[a]+fi_ext)
     os.rename(os.path.join(output_path, fi), fi_path)
 
-    sys.stdout.write(f"{titles_dict[a]} complete\n")
-
     return fi_path
             
 def b_conv(output_path, pet_dir):
@@ -166,8 +121,6 @@ def b_conv(output_path, pet_dir):
     fi_name = titles_dict[b]+fi_ext
     fi_path = os.path.join(output_path, fi_name)
 
-    sys.stdout.write(f"{titles_dict[b]} complete\n")
-
     return fi_path
 
 def c_conv(output_path, pet_dir):
@@ -179,7 +132,6 @@ def c_conv(output_path, pet_dir):
     
     fi_name = titles_dict[c]+fi_ext
     fi_path = os.path.join(output_path, fi_name)
-    sys.stdout.write(f"{titles_dict[c]} complete\n")
 
     return fi_path
 
@@ -221,7 +173,6 @@ def d_conv(output_path, pet_dir):
     """
     d_exe = f'python {sitk_path} -i {pet_dir} -o {output_path} -f {titles_dict[d]}'
     os.system(d_exe)
-    sys.stdout.write(f"{titles_dict[d]} complete\n")
 
 def get_suv(pet_dir):
     """
@@ -272,7 +223,7 @@ def make_gt_dirs(dirs):
         gt_dirs.append(gt_dir)
     return gt_dirs
 
-def buildMaskArray(file, seriesPath, labelPath) -> np.ndarray:
+def buildMaskArray(fi, seriesPath, labelPath) -> np.ndarray:
     """
     Helper for the following function: taken from rt_utils
     """
@@ -352,7 +303,6 @@ def gt_conv(case_dir, gt_dirs, name, a_path):
     n=len(gt_dirs)
     for m in np.arange(1, n):
         shutil.copy(os.path.join(dir_0, fi_name), os.path.join(gt_dirs[m], fi_name))
-    sys.stdout.write(f"ground truth complete")
 
 def make_dict(names_, output_dir):
     """
@@ -374,17 +324,13 @@ def file_conversion(input_dir, output_dir):
     """
     names = []
     dirs = os.listdir(input_dir)
-    no_dirs = len(dirs)
-    for i,name in enumerate(dirs):
+    for name in tqdm(dirs):
         input_path = os.path.join(input_dir, name)
         # The directories will correspond to individual patients
         try:
             if (os.path.isdir(input_path)):
                 names.append(name)
-                sys.stdout.write("\n"+f"-"*100+ "\n")
-                sys.stdout.write(f"{i+1}/{no_dirs}: Working on {name}"+ "\n")
                 pet_dir = os.path.join(input_path, pet_dir_name)
-                gt_dir = os.path.join(input_path, gt_dir_name)
                 suv_factor, Rescale_Slope, Rescale_Intercept = get_suv(pet_dir)
 
                 # a
@@ -478,6 +424,25 @@ def get_case_data(dirs, case, input_dir):
                     gt_img = nib.load(fi_path)
             case_data.append([conv_type, pet_img, mask_img, gt_img])
     return case_data
+
+def get_vol_data(case, temp_dir):
+    """
+    Get all the volume datas relevant to this case
+    """
+    vol_data = []
+    for dir in os.listdir(temp_dir):
+        if dir.startswith(case):
+            dir_path = os.path.join(temp_dir, dir)
+            conv_type = dir.replace(case+"_", "")
+            pet_path = os.path.join(dir_path, ai4elife_pet_dir_name)
+            fis = os.listdir(pet_path)
+            for fi in fis:
+                if fi.endswith(fi_ext):
+                    pet_fi = fi
+            fi_path = os.path.join(pet_path, pet_fi)
+            img = nib.load(fi_path)
+            vol_data.append([conv_type, img])
+    return vol_data        
 
 def get_differences(dict):
     """
@@ -577,8 +542,8 @@ def get_hist(diffs, case_dir):
 
 def get_cut_differences(dict, cut):
     """
-    Given a specific cut: {1:coronal, 0:sagittal}, provide all
-    of the subtracted images. The dictionary will have the images
+    Given a specific cut: {0:sagittal, 1:coronal}, provide all
+    of the subtracted images. 
     """
     n = len(dict)
     combos = get_combos(n)
@@ -605,21 +570,28 @@ def get_sub_img(cut_subs, case_dir, cut):
     cmap=cm.get_cmap('viridis')
     #normalizer=Normalize(0,0.001)
     im=cm.ScalarMappable(cmap=cmap)
+    cut_x, cut_y, cut_z = cut_subs[0].shape
 
-    vals = np.array(cut_subs).reshape(no_rows, no_cols, 128, 256, 1)
+    vals = np.array(cut_subs).reshape(no_rows, no_cols, cut_x, cut_y, cut_z)
     titles = get_titles()
     titles = np.array(titles).reshape(no_rows, no_cols)
 
-    fig, axs = plt.subplots(no_rows,no_cols, figsize=(25,10), sharey=True, sharex=True, layout='constrained')
-    fig.suptitle(f'{cut_dict[cut]} Subtracted Plots', y=1, fontsize=24)
+    x_size = 18
+    y_size = 16
+
+    fig, axs = plt.subplots(no_rows,no_cols, figsize=(x_size,y_size), sharey=True, sharex=True, layout='constrained')
 
     for m in np.arange(no_rows):
         for n in np.arange(no_cols):
-            axs[m][n].imshow(vals[m][n], cmap=cmap)
+            data = vals[m][n]
+            # Just to orient them properly (head up)
+            data = np.swapaxes(data,1,0)
+            data = data[::-1, :, :]
+            axs[m][n].imshow(data, cmap=cmap)
             axs[m][n].set_title(titles[m][n], size=18)
             axs[m][n].axis('off')
     fig.colorbar(im, ax=axs[:, n], location='right')
-    plt.savefig(os.path.join(case_dir, f'{cut_dict[cut]} Subtracted Plots.png'))
+    plt.savefig(os.path.join(case_dir, f'{cut_dict[cut]}_subtracted_plots.png'))
     plt.clf()
 
 
@@ -658,24 +630,42 @@ def compute_dices(img1, img2):
         scores.append(cut_dice)
 
     return scores
-    
 
-def get_dice_score(gt_and_mask_dict, case_dir, case, case_columns):
+def compute_mae(key, vol_vals_dict):
+    """
+    Compute the mean absolute error vs. the sitk method
+    """
+    if key==d:
+        return 0
+    else:
+        ref_vals = vol_vals_dict[titles_dict[d]]
+        comp_vals = vol_vals_dict[titles_dict[key]]
+        aes = []
+        n = len(ref_vals)
+        for (r,c) in zip(ref_vals,comp_vals):
+            ae = abs(r-c)
+            aes.append(ae)
+        mae = sum(aes)/n
+        return mae
+
+def get_num_vals(gt_and_mask_dict, vol_vals_dict, case_dir, case, case_columns):
     """"
-    Provided with the predicted mask and gt mask, compute the dice-score and 
-    output a .csv file
+    Provided with the predicted mask and gt mask, compute the dice-score
+    and mean absolute error and provide a .csv file
     """
     entries = []
     for key in keys:
         gt, mask = gt_and_mask_dict[titles_dict[key]]
-        sag_dice_score, cor_dice_score = compute_dices(gt,mask)
-        entry = [case, titles_dict[key], sag_dice_score, cor_dice_score]
+        sag_dice_score, cor_dice_score = compute_dices(gt, mask)
+        mean_abs_error =compute_mae(key, vol_vals_dict)
+        entry = [case, titles_dict[key], sag_dice_score,
+                 cor_dice_score, mean_abs_error]
         entries.append(entry)
 
     df = pd.DataFrame(entries, columns=case_columns)
     df.to_csv(os.path.join(case_dir, f"{case}.csv"), index=False)
 
-def get_results(case_dir, case_data, case):
+def get_results(case_dir, case_data, vol_data, case):
     """
     Given all the data, provide a confusion matrix of the mask values,
     histogram of the pet values absolute differences and subtracted images
@@ -695,6 +685,13 @@ def get_results(case_dir, case_data, case):
         mask_vals_dict[conv_type]=mask_val 
         gt_img = data[3]
         gt_and_mask_dict[conv_type] = [gt_img, mask_img]
+    
+    vol_vals_dict={}
+    for data in vol_data:
+        conv_type = data[0]
+        vol_img = data[1]
+        vol_img_vals = vol_img.get_fdata().reshape(-1)
+        vol_vals_dict[conv_type] = vol_img_vals
         
     pet_diffs = get_differences(pet_vals_dict)
     mask_diffs = get_differences(mask_vals_dict)
@@ -702,7 +699,8 @@ def get_results(case_dir, case_data, case):
     get_hist(pet_diffs, case_dir)
     get_mask_matrix(mask_diffs, case_dir)
     get_subtracted_plots(pet_img_dict, case_dir)
-    get_dice_score(gt_and_mask_dict, case_dir, case, case_columns)
+    get_num_vals(gt_and_mask_dict, vol_vals_dict,
+                 case_dir, case, case_columns)
 
 def get_surrogate_dict(fi_keys, temp_dir, fis_dict):
     """

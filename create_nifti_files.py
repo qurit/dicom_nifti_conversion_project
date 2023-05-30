@@ -14,7 +14,9 @@ argParser = argparse.ArgumentParser(
             methods. It will provide these in directories
             as required by the ai4elife program. It will also
             create the directories for lifex and 3D-slicer but
-            these NIfTI files must be manually created
+            these NIfTI files must be manually created. Finally
+            it will convert the ground truth files and copy them
+            into the appropriate directories for ai4elife. 
         --------------------------------
             This code will use the following convention for 
             referring to the different conversion methods.
