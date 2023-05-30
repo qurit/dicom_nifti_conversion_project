@@ -1,7 +1,0 @@
-Case,Conversion Type,Sagittal Dice Score,Coronal Dice Score
-12-28988-2012-10-26,dicom2nifti,0.0,0.0
-12-28988-2012-10-26,dcm2niix,0.0,0.0
-12-28988-2012-10-26,dcmstack,0.0,0.0
-12-28988-2012-10-26,sitk,0.0,0.0
-12-28988-2012-10-26,lifex,0.0,0.0
-12-28988-2012-10-26,slicer,0.0,0.0

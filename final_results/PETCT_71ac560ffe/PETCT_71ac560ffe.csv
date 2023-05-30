@@ -1,7 +1,0 @@
-Case,Conversion Type,Sagittal Dice Score,Coronal Dice Score
-PETCT_71ac560ffe,dicom2nifti,0.0,0.0
-PETCT_71ac560ffe,dcm2niix,0.0,0.0
-PETCT_71ac560ffe,dcmstack,0.0,0.0
-PETCT_71ac560ffe,sitk,0.0,0.0
-PETCT_71ac560ffe,lifex,0.0,0.0
-PETCT_71ac560ffe,slicer,0.0,0.0
