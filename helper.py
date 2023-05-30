@@ -19,7 +19,6 @@ import nibabel as nib
 import matplotlib.pyplot as plt
 import math
 from matplotlib.colors import Normalize
-import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from tqdm import tqdm
 import warnings
