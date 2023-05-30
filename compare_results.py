@@ -16,7 +16,6 @@ argParser.add_argument("-t", "--temp_dir", help="path to dir with inputs for ai4
 
 args = argParser.parse_args()
 
-#input_dir = args.input_dir
 input_dir = args.input_dir
 output_dir = args.output_dir
 temp_dir = args.temp_dir
