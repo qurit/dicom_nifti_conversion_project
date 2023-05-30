@@ -552,8 +552,8 @@ def get_hist(diffs, case_dir):
 
 def get_cut_differences(dict, cut):
     """
-    Given a specific cut: {1:coronal, 0:sagittal}, provide all
-    of the subtracted images. The dictionary will have the images
+    Given a specific cut: {0:sagittal, 1:coronal}, provide all
+    of the subtracted images. 
     """
     n = len(dict)
     combos = get_combos(n)
@@ -580,8 +580,9 @@ def get_sub_img(cut_subs, case_dir, cut):
     cmap=cm.get_cmap('viridis')
     #normalizer=Normalize(0,0.001)
     im=cm.ScalarMappable(cmap=cmap)
+    cut_x, cut_y, cut_z = cut_subs[0].shape
 
-    vals = np.array(cut_subs).reshape(no_rows, no_cols, 128, 256, 1)
+    vals = np.array(cut_subs).reshape(no_rows, no_cols, cut_x, cut_y, cut_z)
     titles = get_titles()
     titles = np.array(titles).reshape(no_rows, no_cols)
 
@@ -593,13 +594,14 @@ def get_sub_img(cut_subs, case_dir, cut):
     for m in np.arange(no_rows):
         for n in np.arange(no_cols):
             data = vals[m][n]
+            # Just to orient them properly (head up)
             data = np.swapaxes(data,1,0)
             data = data[::-1, :, :]
             axs[m][n].imshow(data, cmap=cmap)
             axs[m][n].set_title(titles[m][n], size=18)
             axs[m][n].axis('off')
     fig.colorbar(im, ax=axs[:, n], location='right')
-    plt.savefig(os.path.join(case_dir, f'{cut_dict[cut]} Subtracted Plots.png'))
+    plt.savefig(os.path.join(case_dir, f'{cut_dict[cut]}_subtracted_plots.png'))
     plt.clf()
 
 
