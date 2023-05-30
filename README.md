@@ -186,4 +186,5 @@ This will provide the previously indicated results in the following structure:
        |-- results.csv                                  <-- Final results file in .csv format
                                                             (Dice, MAE, TMTV)
 ```
-
+# SAMPLE RESULTS
+Directory `a_trial` and `b_trial` are all the results from following this same procedure twice from scratch. However, both of these methods use the same manually generated lifex and slicer files. 
