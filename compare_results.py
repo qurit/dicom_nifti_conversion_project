@@ -38,3 +38,4 @@ for case in tqdm(cases):
     get_results(case_dir, case_data, vol_data, case)
 
 make_result_file(input_dir, output_dir, cases)
+get_mae_table_plot(output_dir)

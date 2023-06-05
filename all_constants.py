@@ -51,3 +51,13 @@ mir_required = {
     titles_dict[e] : False,
     titles_dict[f] : False
 }
+
+result_fi_name = "results.csv"
+
+box_plot_keys = [a,b,c]
+csv_ext = ".csv"
+box_plot_fi_name = "box_plot.png"
+mae_table_columns = ["Conversion Type", "Averaged Mean Absolute Error"]
+mae_table_fi_name = "mae_results.csv"
+mae_csv_index = "Mean Absolute Error"
+conv_type_csv_index = "Conversion Type"

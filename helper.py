@@ -800,4 +800,59 @@ def make_result_file(temp_dir, output_dir, cases):
     dict_vals = get_dict_vals(cases, output_dir, surrogate_data)
 
     final_df = pd.DataFrame(dict_vals, columns = all_columns)
-    final_df.to_csv(os.path.join(output_dir, 'results.csv'), index=False)
+    final_df.to_csv(os.path.join(output_dir, result_fi_name), index=False)
+    
+def make_pox_blot(df_conv_types, df_maes, output_dir):
+    """
+    Provide a list of the conversion types and all
+    the corresponding mean absolute errors, provide 
+    the boxplot for dicom2nifti, dcm2niix, dcmstack
+    """
+    conv_names = []
+    data = []
+
+    for key in box_plot_keys:
+        conv_name = titles_dict[key]
+        conv_names.append(conv_name)
+        conv_data = []
+        for ix, conv_type in enumerate(df_conv_types):
+            if (conv_type==conv_name):
+                conv_data.append(df_maes[ix])
+        data.append(conv_data)
+
+    plt.boxplot(data)
+    plt.xticks([1,2,3], conv_names)
+    plt.title("Mean Absolute Error Relative to SimpleITK")
+    plt.xlabel("Conversion Method")
+    plt.ylabel("Mean Absolute Errors (SUV)")
+    plt.savefig(os.path.join(output_dir, box_plot_fi_name))
+    
+def make_mae_table(df_conv_types, df_maes, output_dir):
+    """
+    Compute all the mean average values and store them in .csv file
+    """
+    entries = []
+    for key in keys:
+        conv_name = titles_dict[key]
+        conv_maes = []
+        for ix, conv_type in enumerate(df_conv_types):
+            if (conv_name==conv_type):
+                mae = df_maes[ix]
+                conv_maes.append(mae)
+        avg_conv_maes = sum(conv_maes)/len(conv_maes)
+        entry = [conv_name, avg_conv_maes]
+        entries.append(entry)
+    df = pd.DataFrame(entries, columns = mae_table_columns)
+    df.to_csv(os.path.join(output_dir, mae_table_fi_name))
+    
+def get_mae_table_plot(output_dir):
+     """ 
+     Provide the box plots and table to
+     illustrate the mean absolute errors
+     """   
+     result_fi_path = os.path.join(output_dir, result_fi_name)
+     results = pd.read_csv(result_fi_path)
+     df_conv_types = results[conv_type_csv_index]
+     df_maes = results[mae_csv_index]
+     make_pox_blot(df_conv_types, df_maes, output_dir)
+     make_mae_table(df_conv_types, df_maes, output_dir)
