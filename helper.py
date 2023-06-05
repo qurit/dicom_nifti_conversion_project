@@ -821,6 +821,7 @@ def make_pox_blot(df_conv_types, df_maes, output_dir):
         data.append(conv_data)
 
     plt.boxplot(data)
+    plt.rcParams["figure.figsize"] = [6, 6]
     plt.xticks([1,2,3], conv_names)
     plt.title("Mean Absolute Error Relative to SimpleITK")
     plt.xlabel("Conversion Method")
