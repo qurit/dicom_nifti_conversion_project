@@ -802,7 +802,7 @@ def make_result_file(temp_dir, output_dir, cases):
     final_df = pd.DataFrame(dict_vals, columns = all_columns)
     final_df.to_csv(os.path.join(output_dir, result_fi_name), index=False)
     
-def make_pox_blot(df_conv_types, df_maes, output_dir):
+def make_box_blot(df_conv_types, df_maes, output_dir):
     """
     Provide a list of the conversion types and all
     the corresponding mean absolute errors, provide 
@@ -855,5 +855,5 @@ def get_mae_table_plot(output_dir):
      results = pd.read_csv(result_fi_path)
      df_conv_types = results[conv_type_csv_index]
      df_maes = results[mae_csv_index]
-     make_pox_blot(df_conv_types, df_maes, output_dir)
+     make_box_blot(df_conv_types, df_maes, output_dir)
      make_mae_table(df_conv_types, df_maes, output_dir)
