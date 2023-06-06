@@ -515,7 +515,6 @@ def move_lifex_slicer_fis(key_dirs, lifex_slicer_dir):
     Move these manually created slicer and lifex files into
     their appropriate directories
     """
-    sys.stdout.write("\nMoving Manual Lifex and Slicer Files\n")
     for key_dir in key_dirs:
         temp_dir = os.path.join(key_dir, temp_dir_name)
         dict_path = os.path.join(temp_dir, dict_name+dict_ext)
@@ -533,7 +532,6 @@ def move_lifex_slicer_fis(key_dirs, lifex_slicer_dir):
                 fi = os.listdir(old_conv_path)[0]
                 shutil.copy(os.path.join(old_conv_path, fi),
                             os.path.join(new_conv_path, fi))
-    sys.stdout.write("\n"+"Moved Lifex and Slicer files")
     sys.stdout.write("\n"+f"-"*100)
     
 def process_lifex_slicer_fis(key_dirs, lifex_slicer_dir, cases):
