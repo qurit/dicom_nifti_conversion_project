@@ -65,7 +65,7 @@ With this directory structure, run the following command (using the environment 
 ```
 python create_nifti_files.py -m <path\to\main_dir>
 ```
-After running this script with the appropriate environment, the `main_dir` will have the following structure (where `gt_conv_1`, `gt_conv_2`, `gt_conv_3`, `gt_conv_4` all have the same structure):
+After running this script with the appropriate environment, the `main_dir` will have the following structure (where `gt_conv_1`, `gt_conv_2`, `gt_conv_3`, `gt_conv_4` all have the same structure but only `gt_conv_4` for conciseness):
 ```
 |-- main_dir                                                          <-- The main directory of all input PET and GT files
 
@@ -74,9 +74,9 @@ After running this script with the appropriate environment, the `main_dir` will 
 |      |-- lifex_slicer_dir                                           <-- Directory containing all the lifex and slicer
                                                                           NIfTI files (manually created)
 |      |-- gt_conv_1                                                  <-- Directory with gt_conv_1 data/results
-|      |-- gt_conv_2                                                  <- Directory with gt_conv_1 data/results
-|      |-- gt_conv_3                                                 <-- Directory with gt_conv_1 data/results
-|      |-- gt_conv_4                                                 <-- Directory with gt_conv_1 data/results
+|      |-- gt_conv_2                                                  <-- Directory with gt_conv_2 data/results
+|      |-- gt_conv_3                                                  <-- Directory with gt_conv_3 data/results
+|      |-- gt_conv_4                                                  <-- Directory with gt_conv_4 data/results
 |      |      |-- temp_dir
 |      |      |      |-- case_1_convmethod_1                          <-- case_1 convmethod_1 folder
 |      |      |      |      |-- gt                                    <-- The ground truth folder
