@@ -215,7 +215,7 @@ The final structure of the `main_dir` will be provided as follows:
        |-- results.csv                                  <-- Final results file in .csv format
                                                             (Dice, MAE, TMTV)
        |-- mae_results.csv                              <-- Averaged MAE results in .csv format
-       |-- box_plot.png                                 <-- MAE results as box plot (for `dicom2nifti`, `dcm2niix, `dcmstack`)
+       |-- box_plot.png                                 <-- MAE results as box plot (for dicom2nifti, dcm2niix, dcmstack)
 ```
 # SAMPLE RESULTS
 Directory `trial_data` contains sample predicted masks and all the results from two separates trials: `a_trial` and `b_trial`. For these two trials, the entire methodology was run in the same way twice from scratch. However, the LIFEx and 3D slicer files were the same between the two. In each individual trial's directory, there is `ai_data` which contains the masks and the TMTV values and `results` which contains all of the plots and final results .csv file. 
