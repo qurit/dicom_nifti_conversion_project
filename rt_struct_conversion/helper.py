@@ -1116,7 +1116,7 @@ def make_plots(data, names, input_dir, dice, cut):
         box_plot_y_axis = "Dice Score"
         fi_name = "Dice"
     else:
-        title = f"{cut_name} TMTV"
+        title = f"{cut_name} TMTV Absolute Errors"
         box_plot_y_axis = "TMTV ($mm^2$)"
         fi_name = "TMTV"
     plt.title(title)

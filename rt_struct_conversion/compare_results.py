@@ -50,6 +50,6 @@ for gt_key in gt_keys:
         vol_data = get_vol_data(case, temp_dir)
         get_results(case_dir, case_data, vol_data, case)
 
-    make_result_file(ai4elife_dir, results_dir, cases)
+    make_result_file(temp_dir, results_dir, cases)
 combine_result_files(main_dir)
 get_overall_results(main_dir)
