@@ -77,8 +77,6 @@ bad_words = ['SUV', 'Liver', 'liver']
 lifex_gt_path = "/home/jhubadmin/qurit/dicom2nifti/gt_exp/lifex_ground_truth"
 slicer_gt_path = "/home/jhubadmin/qurit/dicom2nifti/gt_exp/slicer_ground_truth"
 
-lifex_slicer_dir = "/home/jhubadmin/qurit/dicom2nifti/gt_exp/slicer_lifex_niftis"
-
 box_plot_keys = [a,b,c]
 box_plot_fi_name = "box_plot.png"
 

@@ -34,14 +34,16 @@ argParser = argparse.ArgumentParser(
             -'v' : slicer
         '''))
 argParser.add_argument("-i", "--input_dir", help="path to dir with DICOM series folders", type=str, required=True)
-argParser.add_argument("-o", "--output_dir", help="path to dir where everything is saved", type=str, required=True)
+argParser.add_argument("-o", "--output_dir", help="path to dir where all directories will be saved (input for future scripts)", type=str, required=True)
+argParser.add_argument("-ls", "--lifex_slicer_dir", help="path to dir where manually created lifex and slicer NIfTI files are stored", type=str, required=True)
 
 args = argParser.parse_args()
 
 input_dir = args.input_dir
 output_dir = args.output_dir
+lifex_slicer_dir = args.lifex_slicer_dir
 
-key_dirs = create_fis(input_dir, output_dir)
-move_lifex_slicer_fis(key_dirs)
+key_dirs, cases = create_fis(input_dir, output_dir)
+process_lifex_slicer_fis(key_dirs, lifex_slicer_dir, cases)
 coordinate_dir(output_dir)
 

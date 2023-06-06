@@ -20,8 +20,8 @@ import matplotlib.pyplot as plt
 import math
 from matplotlib.colors import Normalize
 import matplotlib.cm as cm
-from tqdm import tqdm
 import warnings
+from rich.progress import track
 warnings.filterwarnings("ignore")
 
 from all_constants import *
@@ -425,7 +425,7 @@ def file_conversion(input_dir, output_dir, gt_key):
     """
     cases = []
     dirs = os.listdir(input_dir)
-    for case in tqdm(dirs):
+    for case in track(dirs, description="Making NIfTI files..."):
         input_path = os.path.join(input_dir, case)
         key_dir = os.path.join(output_dir, gt_dict[gt_key])
         key_temp_dir = os.path.join(key_dir, temp_dir_name)
@@ -468,7 +468,7 @@ def file_conversion(input_dir, output_dir, gt_key):
             raise SystemError(f"{case} failed")
     make_dict(cases, key_temp_dir)
     
-    return key_dir
+    return key_dir, cases
     
 def create_fis(input_dir, output_dir):
     """
@@ -482,13 +482,35 @@ def create_fis(input_dir, output_dir):
     create_output_dir(output_dir)
     # Do the file conversions
     key_dirs = []
+    n=0
     for gt_key in gt_keys:
-        key_dir=file_conversion(input_dir, output_dir, gt_key)
+        if (n==0):
+            key_dir, cases=file_conversion(input_dir, output_dir, gt_key)
+        else:
+            key_dir, _=file_conversion(input_dir, output_dir, gt_key)
         key_dirs.append(key_dir)
-    sys.stdout.write("\n"+f"-"*100+ "\n")
-    return key_dirs
+        n+=1
+    sys.stdout.write("\n"+f"-"*100)
+    return key_dirs, cases
 
-def move_lifex_slicer_fis(key_dirs):
+def satisfactory_lifex_slicer_dir(lifex_slicer_dir, cases):
+    """ 
+    Ensure that the directory has the relevant directories for each case
+    """
+    for case in cases:
+        lifex_dir = os.path.join(lifex_slicer_dir, case+"_"+titles_dict[e])
+        if not (os.path.isdir(lifex_dir)):
+            raise SystemExit(f"No lifex directory for {case}")
+        if not (os.listdir(lifex_dir)):
+            raise SystemExit(f"lifex directory empty for {case}")
+        slicer_dir = os.path.join(lifex_slicer_dir, case+"_"+titles_dict[f])
+        if not (os.path.isdir(slicer_dir)):
+            raise SystemExit(f"No slicer directory for {case}")
+        if not (os.listdir(slicer_dir)):
+            raise SystemExit(f"slicer directory empty for {case}")
+        
+
+def move_lifex_slicer_fis(key_dirs, lifex_slicer_dir):
     """
     Move these manually created slicer and lifex files into
     their appropriate directories
@@ -504,14 +526,23 @@ def move_lifex_slicer_fis(key_dirs):
             case = _case.replace('\n', '')
             cases.append(case)
         convs = [titles_dict[e], titles_dict[f]]
-        for case in tqdm(cases):
+        for case in track(cases, description="Moving Lifex and Slicer Files..."):
             for conv in convs:
                 old_conv_path = os.path.join(lifex_slicer_dir, case+'_'+conv, 'pet')
                 new_conv_path = os.path.join(temp_dir, case+'_'+conv, 'pet')
                 fi = os.listdir(old_conv_path)[0]
                 shutil.copy(os.path.join(old_conv_path, fi),
                             os.path.join(new_conv_path, fi))
+    sys.stdout.write("\n"+"Moved Lifex and Slicer files")
     sys.stdout.write("\n"+f"-"*100)
+    
+def process_lifex_slicer_fis(key_dirs, lifex_slicer_dir, cases):
+    """ 
+    Check that the provided dir has the relevant 
+    """
+    satisfactory_lifex_slicer_dir(lifex_slicer_dir, cases)
+    move_lifex_slicer_fis(key_dirs, lifex_slicer_dir)
+    
 def get_nifti_fi_path(case_path):
     """
     Get the path of the nifti file
@@ -550,7 +581,7 @@ def coordinate_fis(input_dir):
     nibabel and apply the mirroring (to coordinate
     all of them) if required
     """
-    for case in tqdm(os.listdir(input_dir)):
+    for case in track(os.listdir(input_dir), description="Coordinating Files..."):
         case_path = os.path.join(input_dir, case)
         if os.path.isdir(case_path):
             nifti_fi_path = get_nifti_fi_path(case_path)
@@ -565,12 +596,12 @@ def coordinate_dir(output_dir):
     """
     Coordinate all the appropriate files in all the temp dirs
     """
-    sys.stdout.write("\nCoordinating Files\n")
+    sys.stdout.write("\n"+f"-"*100)
     for gt_key in gt_keys:
         gt_dir_path = os.path.join(output_dir, gt_dict[gt_key])
         gt_temp_dir = os.path.join(gt_dir_path, temp_dir_name)
         coordinate_fis(gt_temp_dir)
-    sys.stdout.write("\n"+f"-"*100)
+    sys.stdout.write(f"-"*100+"\n")
       
 
 def read_dict(input_dir):

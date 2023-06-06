@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 import math
 from matplotlib.colors import Normalize
 import matplotlib.cm as cm
-from tqdm import tqdm
+from rich.progress import track
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -324,7 +324,7 @@ def file_conversion(input_dir, output_dir):
     """
     names = []
     dirs = os.listdir(input_dir)
-    for name in tqdm(dirs):
+    for name in track(dirs, description="Making NIfTI files..."):
         input_path = os.path.join(input_dir, name)
         # The directories will correspond to individual patients
         try:
@@ -364,6 +364,96 @@ def file_conversion(input_dir, output_dir):
         except:
             raise SystemError(f"{name} failed")
     make_dict(names, output_dir)
+    
+    return names
+    
+def satisfactory_lifex_slicer_dir(lifex_slicer_dir, cases):
+    """ 
+    Ensure that the directory has the relevant directories for each case
+    """
+    for case in cases:
+        lifex_dir = os.path.join(lifex_slicer_dir, case+"_"+titles_dict[e])
+        if not (os.path.isdir(lifex_dir)):
+            raise SystemExit(f"No lifex directory for {case}")
+        if not (os.listdir(lifex_dir)):
+            raise SystemExit(f"lifex directory empty for {case}")
+        slicer_dir = os.path.join(lifex_slicer_dir, case+"_"+titles_dict[f])
+        if not (os.path.isdir(slicer_dir)):
+            raise SystemExit(f"No slicer directory for {case}")
+        if not (os.listdir(slicer_dir)):
+            raise SystemExit(f"slicer directory empty for {case}")
+        
+
+def move_lifex_slicer_fis(output_dir, cases, lifex_slicer_dir):
+    """
+    Move these manually created slicer and lifex files into
+    their appropriate directories
+    """
+    convs = [titles_dict[e], titles_dict[f]]
+    for case in track(cases, description="Moving Lifex and Slicer Files..."):
+        for conv in convs:
+            old_conv_path = os.path.join(lifex_slicer_dir, case + '_'+ conv, 'pet')
+            new_conv_path = os.path.join(output_dir, case + '_'+ conv, 'pet')
+            fi = os.listdir(old_conv_path)[0]
+            shutil.copy(os.path.join(old_conv_path, fi),
+                        os.path.join(new_conv_path, fi))
+    sys.stdout.write("\n"+f"-"*100)
+    
+def process_lifex_slicer_fis(output_dir, lifex_slicer_dir, cases):
+    """ 
+    Check that the provided dir has the relevant 
+    """
+    satisfactory_lifex_slicer_dir(lifex_slicer_dir, cases)
+    move_lifex_slicer_fis(output_dir, cases, lifex_slicer_dir)
+
+def get_nifti_fi_path(case_path):
+    """
+    Get the path of the nifti file
+    """
+    pet_path = os.path.join(case_path, ai4elife_pet_dir_name)
+    for fi in os.listdir(pet_path):
+        if fi.endswith(fi_ext):
+            nifti_fi = fi
+    nifti_fi_path = os.path.join(pet_path, nifti_fi)
+
+    return nifti_fi_path
+
+def check_conv_type(case):
+    """
+    Return the conversion type
+    """
+    for key in keys:
+        if case.endswith(titles_dict[key]):
+            conv_type = titles_dict[key]
+            break
+    return conv_type
+
+def extract_img_affine(nifti_fi_path):
+    """
+    Get the image (as ndarray) and the affine
+    """
+    img = nib.load(nifti_fi_path)
+    affine  = img.affine
+    img = img.get_fdata()
+
+    return img, affine
+
+def coordinate_fis(input_dir):
+    """
+    Load and save each nifti file (in pet dir) using
+    nibabel and apply the mirroring (to coordinate
+    all of them) if required
+    """
+    for case in track(os.listdir(input_dir), description="Coordinating..."):
+        case_path = os.path.join(input_dir, case)
+        if os.path.isdir(case_path):
+            nifti_fi_path = get_nifti_fi_path(case_path)
+            conv_type = check_conv_type(case)
+            img, affine = extract_img_affine(nifti_fi_path)
+            if (mir_required[conv_type]):
+                img = img[:, ::-1, :]
+            output_img = nib.Nifti1Image(img, affine)
+            nib.save(output_img, nifti_fi_path)
 
 def read_dict(input_dir):
     """

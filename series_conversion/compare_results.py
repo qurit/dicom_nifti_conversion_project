@@ -30,7 +30,7 @@ no_cases = len(cases)
 # List of all directories in temp_dir
 dirs = get_dirs(input_dir)
 
-for case in tqdm(cases):
+for case in track(cases, description="Getting results..."):
     case_dir = os.path.join(output_dir, case)
     os.mkdir(case_dir)
     case_data = get_case_data(dirs, case, input_dir)

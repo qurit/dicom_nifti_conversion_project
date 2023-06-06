@@ -34,7 +34,7 @@ for gt_key in gt_keys:
     # List of all directories in temp_dir
     dirs = get_dirs(ai4elife_dir)
 
-    for case in tqdm(cases):
+    for case in track(cases, description="Making Results Files..."):
         case_dir = os.path.join(results_dir, case)
         os.mkdir(case_dir)
         case_data = get_case_data(dirs, case, ai4elife_dir)
