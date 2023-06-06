@@ -8,7 +8,7 @@ The purpose of this project is to understand the effects of different rt_struct 
 # METHODOLOGY
 The first step is to create the NIfTI files with the 4 mentioned methods. This will require the LifeX and 3D Slicer files to already have been manually converted to NIfTI. The required directory structure for the input directory for `create_nifti_files.py` is provided as follows
 ```
-|-- main folder                                                <-- The main directory of all input PET and GT files
+|-- main_dir                                                <-- The main directory of all input PET and GT files
 
 |      |-- data_dir                                            <-- Directory containing all the relevant
                                                                    inputted dicom series files
@@ -65,11 +65,11 @@ The first step is to create the NIfTI files with the 4 mentioned methods. This w
 ```
 With this directory structure, run the following command where temp_folder is the output:
 ```
-python create_nifti_files.py -i <path\to\input\dir> -o <path\to\temp_folder>
+python create_nifti_files.py -m <path\to\main_dir>
 ```
-This will provide the following directory structure:
+This will provide the following directory structure where `temp_dir` is found in `main_dir`
 ```
-|-- temp_folder                                         <-- Output folder of create_nifti_files.py,
+|-- temp_dir                                            <-- Output folder of create_nifti_files.py,
                                                             Input folder of apply_ai4elife.py
 |      |-- case_1_convmethod_1                          <-- case_1 convmethod_1 folder
 |           |-- gt                                      <-- The ground truth folder
