@@ -12,9 +12,6 @@ pet_end = 'pet.nii'
 pred_end = 'predicted.nii'
 gt_end = 'ground_truth.nii'
 mask_end = 'predicted.nii'
-temp_dir_name = 'temp_data'
-ai4elife_dir_name = "ai4elife_data"
-results_dir_name = 'results'
 fontsize = 24
 no_rt_struct_prefix = 'PETCT'
 no_rt_struct_conv_name = "dcm2nii_mask"
@@ -107,6 +104,12 @@ gt_columns = ["Mean Sagittal Dice", "Mean Coronal Dice",
               "Mean Absolute Error Total TMTV"]
 
 gt_csv_fi = "gt_comparison_results.csv"
+
+data_dir_name = "data_dir"
+temp_dir_name = "temp_dir"
+ai_dir_name = "ai_dir"
+results_dir_name = "results_dir"
+lifex_slicer_dir_name = "lifex_slicer_dir"
 
 
 

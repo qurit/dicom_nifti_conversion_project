@@ -221,6 +221,7 @@ dependencies:
       - lovely-tensors==0.1.15
       - markdown-it-py==2.2.0
       - mdurl==0.1.2
+      - medpy==0.4.0
       - mistune==2.0.5
       - monai==1.1.0
       - nbclassic==1.0.0

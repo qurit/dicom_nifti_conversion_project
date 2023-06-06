@@ -61,3 +61,9 @@ mae_table_columns = ["Conversion Type", "Averaged Mean Absolute Error"]
 mae_table_fi_name = "mae_results.csv"
 mae_csv_index = "Mean Absolute Error"
 conv_type_csv_index = "Conversion Type"
+
+data_dir_name = "data_dir"
+temp_dir_name = "temp_dir"
+ai_dir_name = "ai_dir"
+results_dir_name = "results_dir"
+lifex_slicer_dir_name = "lifex_slicer_dir"

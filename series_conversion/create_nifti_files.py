@@ -26,30 +26,36 @@ argParser = argparse.ArgumentParser(
             -d : sitk
             -e : lifex
             -f : slicer
+        --------------------------------
+            The prompted main directory is the directory
+            where the following directories are/will be saved:
+            -data_dir
+            -temp_dir
+            -ai_dir
+            -results_dir
+            -lifex_slicer_dir
         '''))
-argParser.add_argument("-i", "--input_dir", help="path to dir with DICOM series folders", type=str, required=True)
-argParser.add_argument("-o", "--output_dir", help="path to dir where NIfTI files will be saved", type=str, required=True)
-argParser.add_argument("-ls", "--lifex_slicer_dir", help="path to dir where manually created lifex and slicer NIfTI files are stored", type=str, required=True)
+argParser.add_argument("-m", "--main_dir", help="path to dir where all data/results will be saved", type=str, required=True)
 args = argParser.parse_args()
 
 sys.stdout.write("\n"+f"-"*100)
 
 # For easy reference
-input_dir = args.input_dir
-output_dir = args.output_dir
-lifex_slicer_dir = args.lifex_slicer_dir
+main_dir = args.main_dir
+data_dir = os.path.join(main_dir, data_dir_name)
+lifex_slicer_dir = os.path.join(main_dir, lifex_slicer_dir_name)
 
 # Check that the provided input directory is suitable
-check_input_dir(input_dir)
+check_input_dir(data_dir)
 sys.stdout.write("\n"+f"-"*100+ "\n")
 
 # Create output directory if necessary
-create_output_dir(output_dir)
+temp_dir = create_main_dir(main_dir)
 
 # Do the file conversions
-names = file_conversion(input_dir, output_dir)
+names = file_conversion(data_dir, temp_dir)
 sys.stdout.write("\n"+f"-"*100+ "\n")
 
 # Move over the LIFEx and Slicer files
-process_lifex_slicer_fis(output_dir, lifex_slicer_dir, cases=names)
-coordinate_fis(output_dir)
+process_lifex_slicer_fis(temp_dir, lifex_slicer_dir, cases=names)
+coordinate_fis(temp_dir)

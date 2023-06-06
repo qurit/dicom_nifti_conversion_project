@@ -89,13 +89,18 @@ def check_input_dir(input_dir):
             
     sys.stdout.write(f"\nInput Directory is Suitable")
 
-def create_output_dir(output_dir):
+def create_main_dir(main_dir):
     """
     Create output directory if necessary
     """
-    if not(os.path.isdir(output_dir)):
-        os.mkdir(output_dir)
-    sys.stdout.write(f"Output directory at {output_dir}")
+    if not(os.path.isdir(main_dir)):
+        os.mkdir(main_dir)
+    sys.stdout.write(f"Main directory at {main_dir}")
+    
+    temp_dir = os.path.join(main_dir, temp_dir_name)
+    os.mkdir(temp_dir)
+    
+    return temp_dir
 
 
 def a_conv(output_path, pet_dir):
@@ -911,11 +916,11 @@ def make_box_blot(df_conv_types, df_maes, output_dir):
         data.append(conv_data)
 
     plt.boxplot(data)
-    plt.rcParams["figure.figsize"] = [6, 6]
     plt.xticks([1,2,3], conv_names)
     plt.title("Mean Absolute Error Relative to SimpleITK")
     plt.xlabel("Conversion Method")
     plt.ylabel("Mean Absolute Errors (SUV)")
+    plt.tight_layout()
     plt.savefig(os.path.join(output_dir, box_plot_fi_name))
     
 def make_mae_table(df_conv_types, df_maes, output_dir):
@@ -934,7 +939,7 @@ def make_mae_table(df_conv_types, df_maes, output_dir):
         entry = [conv_name, avg_conv_maes]
         entries.append(entry)
     df = pd.DataFrame(entries, columns = mae_table_columns)
-    df.to_csv(os.path.join(output_dir, mae_table_fi_name))
+    df.to_csv(os.path.join(output_dir, mae_table_fi_name), index=False)
     
 def get_mae_table_plot(output_dir):
      """ 

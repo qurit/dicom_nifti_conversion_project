@@ -9,19 +9,28 @@ argParser = argparse.ArgumentParser(
     description=textwrap.dedent('''\
         Comparison of the results. This must be run after
         create_nifti_files.py and apply_ai4elife.py. 
+        --------------------------------
+            The prompted main directory is the directory
+            where the following directories are/will be saved:
+            -data_dir
+            -lifex_slicer_dir
+            -dcmrtstruct2nii
+            -lifex
+            -rt_utils
+            -slicer
         '''))
-argParser.add_argument("-i", "--input_dir", help="path to directory with temp and ai4elife data", type=str, required=True)
+argParser.add_argument("-m", "--main_dir", help="path to main directory", type=str, required=True)
 
 args = argParser.parse_args()
 
-input_dir = args.input_dir
+main_dir = args.main_dir
 
 for gt_key in gt_keys:
     gt_name = gt_dict[gt_key]
     sys.stdout.write(f"Working on {gt_name}")
-    gt_dir = os.path.join(input_dir, gt_name)
+    gt_dir = os.path.join(main_dir, gt_name)
     temp_dir = os.path.join(gt_dir, temp_dir_name)
-    ai4elife_dir = os.path.join(gt_dir, ai4elife_dir_name)
+    ai4elife_dir = os.path.join(gt_dir, ai_dir_name)
     results_dir = os.path.join(gt_dir, results_dir_name)
     
     if not(os.path.isdir(results_dir)):
@@ -42,5 +51,5 @@ for gt_key in gt_keys:
         get_results(case_dir, case_data, vol_data, case)
 
     make_result_file(ai4elife_dir, results_dir, cases)
-combine_result_files(input_dir)
-get_overall_results(input_dir)
+combine_result_files(main_dir)
+get_overall_results(main_dir)
