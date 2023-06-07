@@ -3,10 +3,10 @@ To purpose of this directory is to consider the effects on training of different
 
 **High Level Methodology**: Convert our DICOM series PET files into a single NIfTI file using the 6 mentioned techniques (4 of which the code accomplishes, the other 2 are done manually). To simulate the effects on training, we send the data through `ai4elife`. We compare the raw predicted PET values and compare the predicted masks with the ground truth masks. 
 
-# METHODOLOGY
+# Methodology
 The first step is to create the NIfTI files with the 4 mentioned methods. This will require the LifeX and 3D Slicer files to already have been manually converted to NIfTI. The required directory structure for the input directory for `create_nifti_files.py` is provided as follows
 ```
-|-- main_dir                                                   <-- The main directory of all input PET and GT files
+|-- main_dir                                                   <-- The main directory
 
 |      |-- data_dir                                            <-- Directory containing all the relevant
                                                                    inputted dicom series files
@@ -67,7 +67,7 @@ python create_nifti_files.py -m <path\to\main_dir>
 ```
 After running this script with the appropriate environment, the `main_dir` will have the following structure:
 ```
-|-- main_dir                                                   <-- The main directory of all input PET and GT files
+|-- main_dir                                                   <-- The main directory
 
 |      |-- data_dir                                            <-- Directory containing all the relevant
                                                                    inputted dicom series files
@@ -110,7 +110,7 @@ python apply_ai4elife.py -m </path/to/main_dir> -a <path\to\ai4elife\dir>
 The main directory will then have the following structure:
 
 ```
-|-- main_dir                                                   <-- The main directory of all input PET and GT files
+|-- main_dir                                                   <-- The main directory
 
 |      |-- data_dir                                            <-- Directory containing all the relevant
                                                                    inputted dicom series files
