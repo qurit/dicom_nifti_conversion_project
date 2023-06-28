@@ -1,8 +1,6 @@
-#!/usr/bin/env python3
-
+#!/usr/bin/env python
 from helper import *
 
-# Arguments to be passed
 argParser = argparse.ArgumentParser(
     prog='PROG',
     formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -26,24 +24,33 @@ argParser = argparse.ArgumentParser(
             -d : sitk
             -e : lifex
             -f : slicer
+        --------------------------------
+            For the different gt rt_struct conversion methods, the program
+            will refer to them as:
+            -'x' : rt_utils
+            -'y' : pyradise
+            -'z' : dcmrtstruct2nii
+            -'u' : lifex
+            -'v' : slicer
+        --------------------------------
+            The prompted main directory is the directory
+            where the following directories are/will be saved:
+            -data_dir
+            -lifex_slicer_dir
+            -dcmrtstruct2nii
+            -lifex
+            -rt_utils
+            -slicer
         '''))
-argParser.add_argument("-i", "--input_dir", help="path to dir with DICOM series folders", type=str, required=True)
-argParser.add_argument("-o", "--output_dir", help="path to dir where NIfTI files will be saved", type=str, required=True)
+argParser.add_argument("-m", "--main_dir", help="path to main directory", type=str, required=True)
+
 args = argParser.parse_args()
 
-sys.stdout.write("\n"+f"-"*100)
+main_dir = args.main_dir
+data_dir = os.path.join(main_dir, data_dir_name)
+lifex_slicer_dir = os.path.join(main_dir, lifex_slicer_dir_name)
 
-# For easy reference
-input_dir = args.input_dir
-output_dir = args.output_dir
+key_dirs, cases = create_fis(data_dir, main_dir)
+process_lifex_slicer_fis(key_dirs, lifex_slicer_dir, cases)
+coordinate_dir(main_dir)
 
-# Check that the provided input directory is suitable
-check_input_dir(input_dir)
-sys.stdout.write("\n"+f"-"*100+ "\n")
-
-# Create output directory if necessary
-create_output_dir(output_dir)
-
-# Do the file conversions
-file_conversion(input_dir, output_dir)
-sys.stdout.write("\n"+f"-"*100+ "\n")
