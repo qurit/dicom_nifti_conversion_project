@@ -313,19 +313,21 @@ def bad_word_is_in_roi(roi):
 def combine_rois(rois, dir_0, fi_name):
     good_rois = []
     for roi in rois:
-        if not(bad_word_is_in_roi(roi)):
+        if bad_word_is_in_roi(roi):
+            bad_roi_path = os.path.join(dir_0, roi)
+            os.remove(bad_roi_path)
+        else:
             good_rois.append(roi)
-    rois = good_rois
-    ref_roi = rois[0]
+    ref_roi = good_rois[0]
     ref_roi_path = os.path.join(dir_0, ref_roi)
     ref_mask = nib.load(ref_roi_path)
-    rois.remove(ref_roi)
+    good_rois.remove(ref_roi)
     affine = ref_mask.affine
     header = ref_mask.header
 
     final_mask = ref_mask.get_fdata()
 
-    for roi in rois:
+    for roi in good_rois:
         roi_path = os.path.join(dir_0, roi)
         mask = nib.load(roi_path).get_fdata()
         final_mask += mask
@@ -333,7 +335,7 @@ def combine_rois(rois, dir_0, fi_name):
     img = nib.Nifti1Image(final_mask, affine=affine, header=header)
     nib.save(img, os.path.join(dir_0, fi_name))
     
-    for roi in rois:
+    for roi in (good_rois + [ref_roi]):
         roi_path = os.path.join(dir_0, roi)
         os.remove(roi_path)
     
