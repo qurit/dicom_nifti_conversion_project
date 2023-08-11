@@ -1,7 +1,0 @@
-Case,Conversion Type,Sagittal Dice Score,Coronal Dice Score,Mean Absolute Error
-PETCT_c32e1daf9b,dicom2nifti,0.0,0.0,7.774120202836294e-10
-PETCT_c32e1daf9b,dcm2niix,0.0,0.0,7.774120202836294e-10
-PETCT_c32e1daf9b,dcmstack,0.0,0.0,2.5364640999837617e-10
-PETCT_c32e1daf9b,sitk,0.0,0.0,0.0
-PETCT_c32e1daf9b,lifex,0.0,0.0,0.028922674060814637
-PETCT_c32e1daf9b,slicer,0.0,0.0,205.35249885965945

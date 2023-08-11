@@ -1,7 +1,0 @@
-Conversion Type,Averaged Mean Absolute Error
-dicom2nifti,2.2841744957314604e-09
-dcm2niix,2.2841744957314604e-09
-dcmstack,1.3858901550402988e-09
-sitk,0.0
-lifex,0.0595722012927514
-slicer,294.3960926310622
